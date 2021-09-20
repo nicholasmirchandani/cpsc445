@@ -29,24 +29,24 @@ bool operator!= (const Cell& c1, const Cell& c2) {
 class Grid {
     public:
         Cell** cells;
-        int cols;
         int rows;
-        Grid(int cols, int rows);
+        int cols;
+        Grid(int rows, int cols);
         ~Grid();
 };
 
-Grid::Grid(int cols, int rows) {
-    // Design: cells[col][row] = appropriate cell
-    this->cols = cols;
+Grid::Grid(int rows, int cols) {
+    // Design: cells[row][col] = appropriate cell
     this->rows = rows;
-    cells = new Cell*[cols];
-    for(int i = 0; i < cols; ++i) {
-        cells[i] = new Cell[rows];
+    this->cols = cols;
+    cells = new Cell*[rows];
+    for(int i = 0; i < rows; ++i) {
+        cells[i] = new Cell[cols];
     }
 }
 
 Grid::~Grid() {
-    for(int i = 0; i < cols; ++i) {
+    for(int i = 0; i < rows; ++i) {
         delete(cells[i]);
     }
     delete(cells);
@@ -54,12 +54,12 @@ Grid::~Grid() {
 
 // Checks if the grids are the same, used for short circuit evaluation of GoL for efficiency
 bool operator== (const Grid& g1, const Grid& g2) {
-    if(g1.cols != g2.cols || g1.rows != g2.rows) {
+    if(g1.rows != g2.rows || g1.cols != g2.cols) {
         // Not necessary in our implementation since all grids will have the same size, but useful as a sanity check
         return false;
     }
-    for(int i = 0; i < g1.cols; ++i) {
-        for(int j = 0; j < g1.rows; ++j) {
+    for(int i = 0; i < g1.rows; ++i) {
+        for(int j = 0; j < g1.cols; ++j) {
             if(g1.cells[i][j] != g2.cells[i][j]) {
                 return false;
             }
@@ -69,8 +69,8 @@ bool operator== (const Grid& g1, const Grid& g2) {
 }
 
 std::ostream& operator<< (std::ostream& os, const Grid& g) {
-    for(int i = 0; i < g.cols; ++i) {
-        for(int j = 0; j < g.rows; ++j) {
+    for(int i = 0; i < g.rows; ++i) {
+        for(int j = 0; j < g.cols; ++j) {
             os << (g.cells[i][j].isAlive ? "1" : "0");
         }
         os << std::endl;
@@ -78,14 +78,14 @@ std::ostream& operator<< (std::ostream& os, const Grid& g) {
     return os;
 }
 
-void calcNeighbors(Grid* g, int col, int row) {
+void calcNeighbors(Grid* g, int row, int col) {
     short numNeighbors = 0;
-    for(int i = col-1; i <= col + 1; ++i) {
-        if(i < 0 || i >= g->cols) {
+    for(int i = row-1; i <= row + 1; ++i) {
+        if(i < 0 || i >= g->rows) {
             continue;
         }
-        for(int j = row-1; j <= row+1; ++j) {
-            if(j < 0 || j >= g->rows || (i == col && j == row)) {
+        for(int j = col-1; j <= col+1; ++j) {
+            if(j < 0 || j >= g->cols || (i == row && j == col)) {
                 continue;
             }
 
@@ -94,26 +94,54 @@ void calcNeighbors(Grid* g, int col, int row) {
             }
         }
     }
-    g->cells[col][row].numNeighbors = numNeighbors;
+    g->cells[row][col].numNeighbors = numNeighbors;
 }
 
 void calcAllNeighbors(Grid* g) {
     // TODO: Implement calculating neighbors of each cell
-    for(int i = 0; i < g->cols; ++i) {
-        for(int j = 0; j < g->rows; ++j) {
+    for(int i = 0; i < g->rows; ++i) {
+        for(int j = 0; j < g->cols; ++j) {
             calcNeighbors(g, i, j);
         }
     }
 }
 
-void calcNeighborsTask(Grid* g, int cellsToCompute, int startCol, int startRow) {
-    int col = startCol;
+void calcNeighborsTask(Grid* g, int cellsToCompute, int startRow, int startCol) {
     int row = startRow;
+    int col = startCol;
     for(int i = 0; i < cellsToCompute; ++i) {
-        std::cout << "Grid Size: " << g->cols << " " << g->rows << std::endl;
         calcNeighbors(g, row, col);
-        row = (row + 1) % g->cols;
-        col = col + (row == 0 ? 1 : 0);
+        col = (col + 1) % g->cols;
+        row = row + (col == 0 ? 1 : 0);
+    }
+}
+
+void calcFuture(Grid* current, Grid* future, int row, int col) {
+    switch(current->cells[row][col].numNeighbors) {
+        case -1:
+            // Definitely not needed in final code, but will have for now just in case I do something dumb
+            std::cout << "ERROR: Uninitialized neighbor" << std::endl;
+            break;
+        case 2:
+            future->cells[row][col].isAlive = current->cells[row][col].isAlive;
+            break;
+        case 3:
+            future->cells[row][col].isAlive = true;
+            break;
+        default:
+            // Default case covers 0, 1, and 3+ neighbors
+            future->cells[row][col].isAlive = false;
+            break;
+    }
+}
+
+void calcFutureTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int startCol) {
+    int row = startRow;
+    int col = startCol;
+    for(int i = 0; i < cellsToCompute; ++i) {
+        calcFuture(current, future, row, col);
+        col = (col + 1) % current->cols;
+        row = row + (col == 0 ? 1 : 0);
     }
 }
 
@@ -124,37 +152,37 @@ int main(int argc, char** argv) {
     }
 
     std::ifstream is(argv[1]);
-    int cols = 0;
     int rows = 0;
+    int cols = 0;
     std::string line;
     while(is.good()) {
         std::getline(is, line);
-        ++cols;
+        ++rows;
     }
 
-    rows = line.length();
+    cols = line.length();
 
     is.clear();
     is.seekg(0, is.beg);
 
     // Making the grids pointers so we can use shadow paging as an optimization, to prevent copying everything back every update
-    Grid* current = new Grid(cols, rows);
-    Grid* future = new Grid(cols, rows);
+    Grid* current = new Grid(rows, cols);
+    Grid* future = new Grid(rows, cols);
 
     {
-        int col = 0;
+        int row = 0;
         while(is.good()) {
-            int row = 0;
+            int col = 0;
             std::getline(is, line);
             for(char c : line) {
                 if (c == '1') {
-                    current->cells[col][row].isAlive = true;
+                    current->cells[row][col].isAlive = true;
                 } else {
-                    current->cells[col][row].isAlive = false;
+                    current->cells[row][col].isAlive = false;
                 }
-                ++row;
+                ++col;
             }
-            ++col;
+            ++row;
         }
     }
 
@@ -166,19 +194,16 @@ int main(int argc, char** argv) {
     for(int i = 0; i < steps; ++i) {
         // Update loop
 
+        // TODO: Combine calcNeighbors and calcFuture
         // TODO: Parallelize these!
         std::vector<std::thread*> threads;
-        int numCells = current->cols * current->rows;
+        int numCells = current->rows * current->cols;
         for (int threadNum = 0; threadNum < numThreads; ++threadNum) {
             int cellsToCompute = (numCells / numThreads) + ((threadNum < numCells % numThreads) ? 1 : 0);
-            std::cout << "Cells per thread: " << cellsToCompute << "\t";
             int startCell = threadNum * (numCells / numThreads) + std::min(threadNum, numCells % numThreads);
-            std::cout << "Starting cell num: " << startCell << "\t";
-            int startCol = startCell / current->cols;
-            int startRow = startCell % current->cols;
-            std::cout << "startCol: " << startCol << "\t";
-            std::cout << "startRow: " << startRow << std::endl;
-            threads.push_back(new std::thread(calcNeighborsTask, current, cellsToCompute, startCol, startRow));
+            int startRow = startCell / current->cols;
+            int startCol = startCell % current->cols;
+            threads.push_back(new std::thread(calcNeighborsTask, current, cellsToCompute, startRow, startCol));
         }
 
         for (int j = 0; j < numThreads; ++j) {
@@ -188,28 +213,22 @@ int main(int argc, char** argv) {
 
         threads.resize(0);
 
-        // calcAllNeighbors(current);
-        for(int j = 0; j < current->cols; ++j) {
-            for(int k = 0; k < current->rows; ++k) {
-                // Implementation of the rules in a switch statement
-                switch(current->cells[j][k].numNeighbors) {
-                    case -1:
-                        // Definitely not needed in final code, but will have for now just in case I do something dumb
-                        std::cout << "ERROR: Uninitialized neighbor" << std::endl;
-                        break;
-                    case 2:
-                        future->cells[j][k].isAlive = current->cells[j][k].isAlive;
-                        break;
-                    case 3:
-                        future->cells[j][k].isAlive = true;
-                        break;
-                    default:
-                        // Default case covers 0, 1, and 3+ neighbors
-                        future->cells[j][k].isAlive = false;
-                        break;
-                }
-            }
+
+        for (int threadNum = 0; threadNum < numThreads; ++threadNum) {
+            int cellsToCompute = (numCells / numThreads) + ((threadNum < numCells % numThreads) ? 1 : 0);
+            int startCell = threadNum * (numCells / numThreads) + std::min(threadNum, numCells % numThreads);
+            int startRow = startCell / current->cols;
+            int startCol = startCell % current->cols;
+            threads.push_back(new std::thread(calcFutureTask, current, future, cellsToCompute, startRow, startCol));
         }
+
+        for (int j = 0; j < numThreads; ++j) {
+            (*threads[j]).join();
+            delete threads[j];
+        }
+
+        threads.resize(0);
+
         // End TODO for parallelization
         void* temp = future;
         future = current;
