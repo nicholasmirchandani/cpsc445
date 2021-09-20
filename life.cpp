@@ -16,11 +16,6 @@ Cell::Cell() {
     numNeighbors = -1;  // Using negative numbers to indicate not yetcalculated
 }
 
-// TODO: Is this required?  I don't think so, since != is all that's required when comparing grids.
-bool operator== (const Cell& c1, const Cell& c2) {
-    return c1.isAlive == c2.isAlive;
-}
-
 bool operator!= (const Cell& c1, const Cell& c2) {
     // Whether or not the cells are alive is what matters to us when comparing them.
     return c1.isAlive != c2.isAlive;
@@ -97,25 +92,6 @@ void calcNeighbors(Grid* g, int row, int col) {
     g->cells[row][col].numNeighbors = numNeighbors;
 }
 
-void calcAllNeighbors(Grid* g) {
-    // TODO: Implement calculating neighbors of each cell
-    for(int i = 0; i < g->rows; ++i) {
-        for(int j = 0; j < g->cols; ++j) {
-            calcNeighbors(g, i, j);
-        }
-    }
-}
-
-void calcNeighborsTask(Grid* g, int cellsToCompute, int startRow, int startCol) {
-    int row = startRow;
-    int col = startCol;
-    for(int i = 0; i < cellsToCompute; ++i) {
-        calcNeighbors(g, row, col);
-        col = (col + 1) % g->cols;
-        row = row + (col == 0 ? 1 : 0);
-    }
-}
-
 void calcFuture(Grid* current, Grid* future, int row, int col) {
     switch(current->cells[row][col].numNeighbors) {
         case -1:
@@ -135,10 +111,11 @@ void calcFuture(Grid* current, Grid* future, int row, int col) {
     }
 }
 
-void calcFutureTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int startCol) {
+void cellTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int startCol) {
     int row = startRow;
     int col = startCol;
     for(int i = 0; i < cellsToCompute; ++i) {
+        calcNeighbors(current, row, col);
         calcFuture(current, future, row, col);
         col = (col + 1) % current->cols;
         row = row + (col == 0 ? 1 : 0);
@@ -195,15 +172,15 @@ int main(int argc, char** argv) {
         // Update loop
 
         // TODO: Combine calcNeighbors and calcFuture
-        // TODO: Parallelize these!
         std::vector<std::thread*> threads;
         int numCells = current->rows * current->cols;
+
         for (int threadNum = 0; threadNum < numThreads; ++threadNum) {
             int cellsToCompute = (numCells / numThreads) + ((threadNum < numCells % numThreads) ? 1 : 0);
             int startCell = threadNum * (numCells / numThreads) + std::min(threadNum, numCells % numThreads);
             int startRow = startCell / current->cols;
             int startCol = startCell % current->cols;
-            threads.push_back(new std::thread(calcNeighborsTask, current, cellsToCompute, startRow, startCol));
+            threads.push_back(new std::thread(cellTask, current, future, cellsToCompute, startRow, startCol));
         }
 
         for (int j = 0; j < numThreads; ++j) {
@@ -213,23 +190,11 @@ int main(int argc, char** argv) {
 
         threads.resize(0);
 
-
-        for (int threadNum = 0; threadNum < numThreads; ++threadNum) {
-            int cellsToCompute = (numCells / numThreads) + ((threadNum < numCells % numThreads) ? 1 : 0);
-            int startCell = threadNum * (numCells / numThreads) + std::min(threadNum, numCells % numThreads);
-            int startRow = startCell / current->cols;
-            int startCol = startCell % current->cols;
-            threads.push_back(new std::thread(calcFutureTask, current, future, cellsToCompute, startRow, startCol));
+        if(*future == *current) {
+            break;
+            // Since future = current, we can break out early, since we know all future timesteps are irrelevant
         }
 
-        for (int j = 0; j < numThreads; ++j) {
-            (*threads[j]).join();
-            delete threads[j];
-        }
-
-        threads.resize(0);
-
-        // End TODO for parallelization
         void* temp = future;
         future = current;
         current = (Grid*) temp;
