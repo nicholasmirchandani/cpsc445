@@ -13,7 +13,7 @@ class Cell {
 
 Cell::Cell() {
     isAlive = false;
-    numNeighbors = -1;  // Using negative numbers to indicate not yetcalculated
+    numNeighbors = -1;  // Using negative numbers to indicate not yet calculated
 }
 
 bool operator!= (const Cell& c1, const Cell& c2) {
@@ -47,15 +47,14 @@ Grid::~Grid() {
     delete(cells);
 }
 
+// TODO: Parallelize this?
 // Checks if the grids are the same, used for short circuit evaluation of GoL for efficiency
 bool operator== (const Grid& g1, const Grid& g2) {
-    if(g1.rows != g2.rows || g1.cols != g2.cols) {
-        // Not necessary in our implementation since all grids will have the same size, but useful as a sanity check
-        return false;
-    }
+    //No need to compare # of rows/cols since all grids in our GoL will be the same size.  Optimizations :)
     for(int i = 0; i < g1.rows; ++i) {
         for(int j = 0; j < g1.cols; ++j) {
             if(g1.cells[i][j] != g2.cells[i][j]) {
+                // If any cells are different, they are different boards.
                 return false;
             }
         }
@@ -142,7 +141,7 @@ int main(int argc, char** argv) {
     is.clear();
     is.seekg(0, is.beg);
 
-    // Making the grids pointers so we can use shadow paging as an optimization, to prevent copying everything back every update
+    // Making the grids pointers so we can use shadow paging as an optimization with double buffering, to prevent copying everything back every update
     Grid* current = new Grid(rows, cols);
     Grid* future = new Grid(rows, cols);
 
@@ -170,8 +169,6 @@ int main(int argc, char** argv) {
 
     for(int i = 0; i < steps; ++i) {
         // Update loop
-
-        // TODO: Combine calcNeighbors and calcFuture
         std::vector<std::thread*> threads;
         int numCells = current->rows * current->cols;
 
