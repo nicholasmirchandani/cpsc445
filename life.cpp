@@ -16,11 +16,6 @@ Cell::Cell() {
     numNeighbors = -1;  // Using negative numbers to indicate not yet calculated
 }
 
-bool operator!= (const Cell& c1, const Cell& c2) {
-    // Whether or not the cells are alive is what matters to us when comparing them.
-    return c1.isAlive != c2.isAlive;
-}
-
 class Grid {
     public:
         Cell** cells;
@@ -45,21 +40,6 @@ Grid::~Grid() {
         delete(cells[i]);
     }
     delete(cells);
-}
-
-// TODO: Parallelize this?
-// Checks if the grids are the same, used for short circuit evaluation of GoL for efficiency
-bool operator== (const Grid& g1, const Grid& g2) {
-    //No need to compare # of rows/cols since all grids in our GoL will be the same size.  Optimizations :)
-    for(int i = 0; i < g1.rows; ++i) {
-        for(int j = 0; j < g1.cols; ++j) {
-            if(g1.cells[i][j] != g2.cells[i][j]) {
-                // If any cells are different, they are different boards.
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 std::ostream& operator<< (std::ostream& os, const Grid& g) {
@@ -110,16 +90,22 @@ void calcFuture(Grid* current, Grid* future, int row, int col) {
     }
 }
 
+bool isSame;
+
 void cellTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int startCol) {
     int row = startRow;
     int col = startCol;
     for(int i = 0; i < cellsToCompute; ++i) {
         calcNeighbors(current, row, col);
         calcFuture(current, future, row, col);
+        if(current->cells[row][col].isAlive != future->cells[row][col].isAlive) {
+            isSame = false;
+        }
         col = (col + 1) % current->cols;
         row = row + (col == 0 ? 1 : 0);
     }
 }
+
 
 int main(int argc, char** argv) {
     if(argc < 5) {
@@ -168,6 +154,8 @@ int main(int argc, char** argv) {
     int numThreads = atoi(argv[4]);
 
     for(int i = 0; i < steps; ++i) {
+        isSame = true;
+        
         // Update loop
         std::vector<std::thread*> threads;
         int numCells = current->rows * current->cols;
@@ -187,9 +175,9 @@ int main(int argc, char** argv) {
 
         threads.resize(0);
 
-        if(*future == *current) {
+        // Short circuit evaluation computed via the parallel threads synced thanks to join
+        if(isSame) {
             break;
-            // Since future = current, we can break out early, since we know all future timesteps are irrelevant
         }
 
         void* temp = future;
