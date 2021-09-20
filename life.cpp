@@ -1,5 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
+#include "math.h"
+#include <vector>
 
 class Cell {
     public:
@@ -103,6 +106,16 @@ void calcAllNeighbors(Grid* g) {
     }
 }
 
+void calcNeighborsTask(Grid* g, int cellsToCompute, int startCol, int startRow) {
+    int col = startCol;
+    int row = startRow;
+    for(int i = 0; i < cellsToCompute; ++i) {
+        std::cout << "Grid Size: " << g->cols << " " << g->rows << std::endl;
+        calcNeighbors(g, row, col);
+        row = (row + 1) % g->cols;
+        col = col + (row == 0 ? 1 : 0);
+    }
+}
 
 int main(int argc, char** argv) {
     if(argc < 5) {
@@ -148,12 +161,34 @@ int main(int argc, char** argv) {
     is.close();
 
     int steps = atoi(argv[3]);
+    int numThreads = atoi(argv[4]);
 
     for(int i = 0; i < steps; ++i) {
         // Update loop
 
         // TODO: Parallelize these!
-        calcAllNeighbors(current);
+        std::vector<std::thread*> threads;
+        int numCells = current->cols * current->rows;
+        for (int threadNum = 0; threadNum < numThreads; ++threadNum) {
+            int cellsToCompute = (numCells / numThreads) + ((threadNum < numCells % numThreads) ? 1 : 0);
+            std::cout << "Cells per thread: " << cellsToCompute << "\t";
+            int startCell = threadNum * (numCells / numThreads) + std::min(threadNum, numCells % numThreads);
+            std::cout << "Starting cell num: " << startCell << "\t";
+            int startCol = startCell / current->cols;
+            int startRow = startCell % current->cols;
+            std::cout << "startCol: " << startCol << "\t";
+            std::cout << "startRow: " << startRow << std::endl;
+            threads.push_back(new std::thread(calcNeighborsTask, current, cellsToCompute, startCol, startRow));
+        }
+
+        for (int j = 0; j < numThreads; ++j) {
+            (*threads[j]).join();
+            delete threads[j];
+        }
+
+        threads.resize(0);
+
+        // calcAllNeighbors(current);
         for(int j = 0; j < current->cols; ++j) {
             for(int k = 0; k < current->rows; ++k) {
                 // Implementation of the rules in a switch statement
