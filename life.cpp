@@ -4,19 +4,9 @@
 #include "math.h"
 #include <vector>
 
-class Cell {
-    public:
-        bool isAlive;
-        Cell();
-};
-
-Cell::Cell() {
-    isAlive = false;
-}
-
 class Grid {
     public:
-        Cell** cells;
+        bool** cells;
         int rows;
         int cols;
         Grid(int rows, int cols);
@@ -27,9 +17,9 @@ Grid::Grid(int rows, int cols) {
     // Design: cells[row][col] = appropriate cell
     this->rows = rows;
     this->cols = cols;
-    cells = new Cell*[rows];
+    cells = new bool*[rows];
     for(int i = 0; i < rows; ++i) {
-        cells[i] = new Cell[cols];
+        cells[i] = new bool[cols];
     }
 }
 
@@ -43,7 +33,7 @@ Grid::~Grid() {
 std::ostream& operator<< (std::ostream& os, const Grid& g) {
     for(int i = 0; i < g.rows; ++i) {
         for(int j = 0; j < g.cols; ++j) {
-            os << (g.cells[i][j].isAlive ? "1" : "0");
+            os << (g.cells[i][j] ? "1" : "0");
         }
         os << std::endl;
     }
@@ -61,7 +51,7 @@ void calcFuture(Grid* current, Grid* future, int row, int col) {
                 continue;
             }
 
-            if(current->cells[i][j].isAlive) {
+            if(current->cells[i][j]) {
                 ++numNeighbors;
             }
         }
@@ -69,14 +59,14 @@ void calcFuture(Grid* current, Grid* future, int row, int col) {
     
     switch(numNeighbors) {
         case 2:
-            future->cells[row][col].isAlive = current->cells[row][col].isAlive;
+            future->cells[row][col] = current->cells[row][col];
             break;
         case 3:
-            future->cells[row][col].isAlive = true;
+            future->cells[row][col] = true;
             break;
         default:
             // Default case covers 0, 1, and 3+ neighbors
-            future->cells[row][col].isAlive = false;
+            future->cells[row][col] = false;
             break;
     }
 }
@@ -88,7 +78,7 @@ void cellTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int
     int col = startCol;
     for(int i = 0; i < cellsToCompute; ++i) {
         calcFuture(current, future, row, col);
-        if(current->cells[row][col].isAlive != future->cells[row][col].isAlive) {
+        if(current->cells[row][col] != future->cells[row][col]) {
             isSame = false;
         }
         col = (col + 1) % current->cols;
@@ -128,9 +118,9 @@ int main(int argc, char** argv) {
             std::getline(is, line);
             for(char c : line) {
                 if (c == '1') {
-                    current->cells[row][col].isAlive = true;
+                    current->cells[row][col] = true;
                 } else {
-                    current->cells[row][col].isAlive = false;
+                    current->cells[row][col] = false;
                 }
                 ++col;
             }
