@@ -7,13 +7,11 @@
 class Cell {
     public:
         bool isAlive;
-        short numNeighbors;
         Cell();
 };
 
 Cell::Cell() {
     isAlive = false;
-    numNeighbors = -1;  // Using negative numbers to indicate not yet calculated
 }
 
 class Grid {
@@ -52,31 +50,24 @@ std::ostream& operator<< (std::ostream& os, const Grid& g) {
     return os;
 }
 
-void calcNeighbors(Grid* g, int row, int col) {
-    short numNeighbors = 0;
+void calcFuture(Grid* current, Grid* future, int row, int col) {
+    char numNeighbors = 0; // Using char for 1 byte storage
     for(int i = row-1; i <= row + 1; ++i) {
-        if(i < 0 || i >= g->rows) {
+        if(i < 0 || i >= current->rows) {
             continue;
         }
         for(int j = col-1; j <= col+1; ++j) {
-            if(j < 0 || j >= g->cols || (i == row && j == col)) {
+            if(j < 0 || j >= current->cols || (i == row && j == col)) {
                 continue;
             }
 
-            if(g->cells[i][j].isAlive) {
+            if(current->cells[i][j].isAlive) {
                 ++numNeighbors;
             }
         }
     }
-    g->cells[row][col].numNeighbors = numNeighbors;
-}
-
-void calcFuture(Grid* current, Grid* future, int row, int col) {
-    switch(current->cells[row][col].numNeighbors) {
-        case -1:
-            // Definitely not needed in final code, but will have for now just in case I do something dumb
-            std::cout << "ERROR: Uninitialized neighbor" << std::endl;
-            break;
+    
+    switch(numNeighbors) {
         case 2:
             future->cells[row][col].isAlive = current->cells[row][col].isAlive;
             break;
@@ -96,7 +87,6 @@ void cellTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int
     int row = startRow;
     int col = startCol;
     for(int i = 0; i < cellsToCompute; ++i) {
-        calcNeighbors(current, row, col);
         calcFuture(current, future, row, col);
         if(current->cells[row][col].isAlive != future->cells[row][col].isAlive) {
             isSame = false;
