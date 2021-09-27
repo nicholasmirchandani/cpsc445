@@ -1,3 +1,12 @@
+/*
+Name: Nicholas Mirchandani
+ID: 2317024
+Email: nmirchandani@chapman.edu
+Course: CPSC445-01
+Assignment 1: Game of Life
+life.cpp contains all classes
+*/
+
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -5,6 +14,7 @@
 #include <vector>
 #include <cstring>
 
+// The Grid class is used to abstract away the concept of a Grid for easy double buffering/shadow paging with pointers.
 class Grid {
     public:
         bool** cells;
@@ -41,6 +51,7 @@ std::ostream& operator<< (std::ostream& os, const Grid& g) {
     return os;
 }
 
+// calcFuture counts the number of neighbors of a given cell in the current grid and updates the future grid accordingly.
 void calcFuture(Grid* current, Grid* future, int row, int col) {
     char numNeighbors = 0; // Using char for 1 byte storage
     for(int i = row-1; i <= row + 1; ++i) {
@@ -72,8 +83,10 @@ void calcFuture(Grid* current, Grid* future, int row, int col) {
     }
 }
 
-bool isSame;
+bool isSame; // Used as a global variable shared across all threads to end execution early if none of the cells are different from generation to generation
 
+// threadTask calculates the future of the given cellsToCompute starting from startRow, startCol.  
+// Is safe from isues since threads will not be modifying the same memory, as each cell is a different offset within future->cells
 void threadTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int startCol) {
     int row = startRow;
     int col = startCol;
@@ -87,7 +100,7 @@ void threadTask(Grid* current, Grid* future, int cellsToCompute, int startRow, i
     }
 }
 
-
+// main is the driver, parsing the inputfile, invoking the threads, and dumping to the outputfile with all the required error checking
 int main(int argc, char** argv) {
     if(argc < 5) {
         std::cout << "Proper Usage: %s <inputfile> <outputfile> <numsteps> <numthreads>" << std::endl;
