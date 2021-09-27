@@ -74,7 +74,7 @@ void calcFuture(Grid* current, Grid* future, int row, int col) {
 
 bool isSame;
 
-void cellTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int startCol) {
+void threadTask(Grid* current, Grid* future, int cellsToCompute, int startRow, int startCol) {
     int row = startRow;
     int col = startCol;
     for(int i = 0; i < cellsToCompute; ++i) {
@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
             int startCell = threadNum * (numCells / numThreads) + std::min(threadNum, numCells % numThreads);
             int startRow = startCell / current->cols;
             int startCol = startCell % current->cols;
-            threads.push_back(new std::thread(cellTask, current, future, cellsToCompute, startRow, startCol));
+            threads.push_back(new std::thread(threadTask, current, future, cellsToCompute, startRow, startCol));
         }
 
         for (int j = 0; j < numThreads; ++j) {
