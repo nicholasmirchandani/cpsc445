@@ -3,6 +3,7 @@
 #include <thread>
 #include "math.h"
 #include <vector>
+#include <cstring>
 
 class Grid {
     public:
@@ -152,7 +153,19 @@ int main(int argc, char** argv) {
     is.close();
 
     int steps = atoi(argv[3]);
+    if (steps < 0) {
+        std::cout << "Nonsensical number of steps [INVALID_ARGUMENT].  Exiting" << std::endl;
+        exit(1);
+    } else if (steps == 0 && (argv[3][0] != '0' || strlen(argv[3]) > 1)) {
+        std::cout << "Steps invalid [INVALID_ARGUMENT].  Exiting" << std::endl;
+        exit(1);
+    }
+
     int numThreads = atoi(argv[4]);
+    if (numThreads <= 0) {
+        std::cout << "Nonsensical number of threads or bad thread input [INVALID_ARGUMENT].  Exiting" << std::endl;
+        exit(1);
+    }
 
     for(int i = 0; i < steps; ++i) {
         isSame = true;
