@@ -94,15 +94,29 @@ int main(int argc, char** argv) {
     }
 
     std::ifstream is(argv[1]);
+    if (is.fail()) {
+        std::cout << "Unable to open input file.  Exiting " << std::endl;
+        exit(1);
+    }
+
     int rows = 0;
     int cols = 0;
     std::string line;
     while(is.good()) {
         std::getline(is, line);
+        if(line.length() == 0) {
+            continue;
+        }
+        if(cols != 0) {
+            // If not first loop and line length is different, file is invalid
+            if (line.length() != cols) {
+                std::cout << "Invalid file [COLUMN_LENGTH].  Exiting" << std::endl;
+                exit(1);
+            }
+        }
+        cols = line.length();
         ++rows;
     }
-
-    cols = line.length();
 
     is.clear();
     is.seekg(0, is.beg);
@@ -116,11 +130,18 @@ int main(int argc, char** argv) {
         while(is.good()) {
             int col = 0;
             std::getline(is, line);
+            if(line.length() == 0) {
+                continue; // Extra returns in file are fine
+            }   
             for(char c : line) {
                 if (c == '1') {
                     current->cells[row][col] = true;
-                } else {
+                } else if (c == '0') {
                     current->cells[row][col] = false;
+                } else {
+                    // If chars in file are not 0 or 1, file is invalid.
+                    std::cout << "Invalid File [UNKNOWN_CHAR].  Exiting" << std::endl;
+                    exit(1);
                 }
                 ++col;
             }
@@ -166,5 +187,9 @@ int main(int argc, char** argv) {
     }
 
     std::ofstream os(argv[2]);
+    if (os.fail()) {
+        std::cout << "Unable to open output file.  Exiting " << std::endl;
+        exit(1);
+    }
     os << *current;
 }
