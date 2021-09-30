@@ -7,6 +7,8 @@ Assignment 1: Game of Life
 life.cpp contains all classes
 */
 
+// Extra comment to test CI
+
 #include <iostream>
 #include <fstream>
 #include <thread>
