@@ -63,12 +63,14 @@ int main(int argc, char** argv) {
                 word.push_back(c);
             }
         }
+
         // Also check last word if doesn't end on space, assuming newline isn't present
         // If vector contains word, then increment it
         for(int i = 0; i < keywords_vec.size(); ++i) {
             if(keywords_vec[i].compare(word) == 0) {
                 ++keywords_count[i];
             }
+            word = "";
         }
     }
 
