@@ -24,7 +24,9 @@ int main(int argc, char** argv) {
         while(line[line.length()-1] == '\n' || line[line.length()-1] == '\r') {
             line.pop_back();
         }
-        keywords_vec.push_back(line);
+        if(line.length() != 0) {
+            keywords_vec.push_back(line);
+        }
     }
     keywords_is.close();
 
