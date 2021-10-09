@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     while(text_is.good()) {
         std::getline(text_is, line);
         for(char c : line) {
-            if(c == '.' || c == ' ') {
+            if(c == '.' || c == ' ' || c == '\r' || c == '\n') {
                 // If vector contains word, then increment it
                 for(int i = 0; i < keywords_vec.size(); ++i) {
                     // std::cout << "Keyword comparing: " << keywords_vec[i] << " Of length: " << keywords_vec[i].length() << std::endl;
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     // Also check last word if doesn't end on space
     // If vector contains word, then increment it
     for(int i = 0; i < keywords_vec.size(); ++i) {
-        if(keywords_vec[i] == word) {
+        if(keywords_vec[i].compare(word) == 0) {
             ++keywords_count[i];
         }
     }
