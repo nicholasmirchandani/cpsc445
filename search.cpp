@@ -69,8 +69,8 @@ int main(int argc, char** argv) {
         for(int i = 0; i < keywords_vec.size(); ++i) {
             if(keywords_vec[i].compare(word) == 0) {
                 ++keywords_count[i];
+                word = ""; // ASSUMPTION: Keyword is not repeated
             }
-            word = "";
         }
     }
 
