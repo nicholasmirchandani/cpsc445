@@ -10,6 +10,7 @@ std::vector<std::string> allLines; // Storing all lines in global buffer to be r
 std::vector<std::string> keywords_vec;
 std::mutex counts_mutex;
 
+// Task for all threads to complete, incrementing the proper indices of keywords_count as needed
 void threadTask(int threadNum, int numThreads, int* keywords_count) {
     std::string line;
     std::string word = "";
@@ -39,7 +40,7 @@ void threadTask(int threadNum, int numThreads, int* keywords_count) {
                 counts_mutex.lock();
                 ++keywords_count[i];
                 counts_mutex.unlock();
-                word = ""; // ASSUMPTION: Keyword is not repeated
+                word = "";
             }
         }
     }
@@ -81,7 +82,6 @@ int main(int argc, char** argv) {
         keywords_count[i] = 0;
     }
 
-
     std::ifstream text_is(argv[2]);
     if (text_is.fail()) {
         std::cout << "Unable to open text file.  Exiting " << std::endl;
@@ -97,12 +97,10 @@ int main(int argc, char** argv) {
         allLines.push_back(line);
     }
 
-    text_is.clear();
-    text_is.seekg(0, text_is.beg);
-
+    text_is.close();
     int numThreads = atoi(argv[4]);
 
-    // Update loop
+    // Processing the lines according to the thread rank; computation in threadTask :)
     std::vector<std::thread*> threads;
     for (int threadNum = 0; threadNum < numThreads; ++threadNum) {
         threads.push_back(new std::thread(threadTask, threadNum, numThreads, keywords_count));
@@ -112,39 +110,6 @@ int main(int argc, char** argv) {
         (*threads[j]).join();
         delete threads[j];
     }
-
-
-    /*std::string word = "";
-    while(text_is.good()) {
-        std::getline(text_is, line);
-        for(char c : line) {
-            if(c == '.' || c == ' ' || c == '\r' || c == '\n') {
-                // If vector contains word, then increment it
-                for(int i = 0; i < keywords_vec.size(); ++i) {
-                    // std::cout << "Keyword comparing: " << keywords_vec[i] << " Of length: " << keywords_vec[i].length() << std::endl;
-                    if(keywords_vec[i].compare(word) == 0) {
-                    //    std::cout << "Matches keyword " << std::endl;
-                        ++keywords_count[i];
-                    }
-                }
-                word = "";
-            } else {
-                word.push_back(c);
-            }
-        }
-
-        // Also check last word if doesn't end on space, assuming newline isn't present
-        // If vector contains word, then increment it
-        for(int i = 0; i < keywords_vec.size(); ++i) {
-            if(keywords_vec[i].compare(word) == 0) {
-                ++keywords_count[i];
-                word = ""; // ASSUMPTION: Keyword is not repeated
-            }
-        }
-    }*/
-
-    text_is.close(); // TODO: Move this up
-
 
 
     std::ofstream os(argv[3]);
