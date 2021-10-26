@@ -104,9 +104,9 @@ int main (int argc, char *argv[]) {
     }
 
     os << "A " << A_Count << std::endl;
-    os << "C " << C_Count << std::endl;
     os << "T " << T_Count << std::endl;
     os << "G " << G_Count << std::endl;
+    os << "C " << C_Count << std::endl;
 
     os.close();
   }
