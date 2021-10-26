@@ -84,7 +84,7 @@ int main (int argc, char *argv[]) {
         ++G_Count_loc;
         break;
       default:
-        std::cerr << "Unknown character detected. Character is ' " << recv_buf[i] << " ' Skipping" << std::endl;
+        std::cout << "Unknown character detected. Character is ' " << recv_buf[i] << " ' Skipping" << std::endl;
     }
   }
 
