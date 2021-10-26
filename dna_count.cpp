@@ -13,7 +13,7 @@ void check_error(int status, const string message="MPI error") {
   }
 }
 
-#define MAX_BUF 1000
+#define MAX_BUF 100000
 
 int main (int argc, char *argv[]) {
   int rank;
@@ -55,7 +55,7 @@ int main (int argc, char *argv[]) {
       numCharsToSend = allChars.length();
   }
   // TODO: Scatter chunks of the string instead of an int
-  check_error(MPI_Scatter(&n[0], numCharsToSend, MPI_CHAR, &recv_buf[0], numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
+  check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
   // TODO: Count number of As, Cs, Ts, and Gs and store them separately
 
