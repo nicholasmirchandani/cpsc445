@@ -55,9 +55,7 @@ int main (int argc, char *argv[]) {
       numCharsToSend = allChars.length();
   }
   // TODO: Scatter chunks of the string instead of an int
-  check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
-
-    std::cout << "Thread rank: " << rank << " with recv buffer of " << recv_buf[0] << std::endl;
+  check_error(MPI_Scatter(&n[0], numCharsToSend, MPI_CHAR, &recv_buf[0], numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
   // TODO: Count number of As, Cs, Ts, and Gs and store them separately
 
