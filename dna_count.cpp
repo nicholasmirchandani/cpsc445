@@ -28,7 +28,7 @@ int main (int argc, char *argv[]) {
   // example code
   char n[MAX_BUF];
   char* recv_buf = new char[MAX_BUF / p];
-  int numCharsToSend = 100;
+  int numCharsToSend;
   if(rank == 0) {
       std::ifstream is("dna.txt");
       if (is.fail()) {
