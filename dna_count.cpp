@@ -97,17 +97,16 @@ int main (int argc, char *argv[]) {
   check_error(MPI_Reduce(&T_Count_loc, &T_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
   check_error(MPI_Reduce(&G_Count_loc, &G_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
   if (rank==0) {
-    // TODO: Check!
     ofstream os("output.txt");
 
     if(os.fail()) {
         std::cout << "Unable to open output file.  Exiting " << std::endl;
     }
 
-    os << "A " << A_Count << " ";
-    os << "C " << C_Count << " ";
-    os << "T " << T_Count << " ";
-    os << "G " << G_Count << " ";
+    os << "A " << A_Count << std::endl;
+    os << "C " << C_Count << std::endl;
+    os << "T " << T_Count << std::endl;
+    os << "G " << G_Count << std::endl;
 
     os.close();
   }
