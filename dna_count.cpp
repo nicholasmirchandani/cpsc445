@@ -1,5 +1,8 @@
 #include <mpi.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <cstring>
 
 using namespace std;
 
@@ -27,17 +30,28 @@ int main (int argc, char *argv[]) {
   char* recv_buf = new char[MAX_BUF / p];
   int numCharsToSend = 100;
   if(rank == 0) {
-      for(int i = 0; i < numCharsToSend; ++i) {
-        if(i % 4 == 0) {
-          n[i] = 'A';
-        } else if (i % 4 == 1) {
-          n[i] = 'C';
-        } else if (i % 4 == 2) {
-          n[i] = 'T';
-        } else {
-          n[i] = 'G';
-        }
+      std::ifstream is("dna.txt");
+      if (is.fail()) {
+        std::cout << "Unable to open dna file.  Exiting " << std::endl;
+        exit(1);
       }
+
+      std::string allChars = "";
+      std::string line;
+      while(is.good()) {
+        std::getline(is, line);
+
+        // Remove trailing newline and carriage returns
+        while(line[line.length()-1] == '\n' || line[line.length()-1] == '\r') {
+            line.pop_back();
+        }
+
+        allChars.append(line);
+      }
+      std::cout << "ALLCHARS: " << allChars << std::endl;
+
+      strcpy(n, allChars.c_str());
+      numCharsToSend = allChars.length();
   }
   // TODO: Scatter chunks of the string instead of an int
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
