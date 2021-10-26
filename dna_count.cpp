@@ -48,7 +48,8 @@ int main (int argc, char *argv[]) {
 
         allChars.append(line);
       }
-      std::cout << "ALLCHARS: " << allChars << std::endl;
+
+      is.close();
 
       strcpy(n, allChars.c_str());
       numCharsToSend = allChars.length();
@@ -99,11 +100,18 @@ int main (int argc, char *argv[]) {
   check_error(MPI_Reduce(&G_Count_loc, &G_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
   if (rank==0) {
     // TODO: Check!
-    std::cout << "Counts: " << std::endl;
-    std::cout << "A_Count: " << A_Count << std::endl;
-    std::cout << "C_Count: " << C_Count << std::endl;
-    std::cout << "T_Count: " << T_Count << std::endl;
-    std::cout << "G_Count: " << G_Count << std::endl;
+    ofstream os("output.txt");
+
+    if(os.fail()) {
+        std::cout << "Unable to open output file.  Exiting " << std::endl;
+    }
+
+    os << "A " << A_Count << " ";
+    os << "C " << C_Count << " ";
+    os << "T " << T_Count << " ";
+    os << "G " << G_Count << " ";
+
+    os.close();
   }
 
   check_error(MPI_Finalize());
