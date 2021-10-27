@@ -61,10 +61,8 @@ int main (int argc, char *argv[]) {
   // TODO: Scatter chunks of the string instead of an int
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
-  // TODO: Count number of As, Cs, Ts, and Gs and store them separately
-  std::cout << "Recv_buf: " << recv_buf << std::endl;
 
-  // TODO: Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
+  // Count number of As, Cs, Ts, and Gs and store them separately
   int A_Count = 0;
   int C_Count = 0;
   int T_Count = 0;
@@ -101,6 +99,7 @@ int main (int argc, char *argv[]) {
 
 
 
+  // Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   check_error(MPI_Reduce(&A_Count_loc, &A_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
   check_error(MPI_Reduce(&C_Count_loc, &C_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
   check_error(MPI_Reduce(&T_Count_loc, &T_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
