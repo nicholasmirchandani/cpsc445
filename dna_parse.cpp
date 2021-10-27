@@ -27,7 +27,7 @@ char returnNucleotide(int num) {
             return '?';
     }
 }
-#define MAX_BUF 100000
+#define MAX_BUF 10000
 
 int main (int argc, char *argv[]) {
   int rank;
