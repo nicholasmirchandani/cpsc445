@@ -28,7 +28,7 @@ int main (int argc, char *argv[]) {
   // example code
   char n[MAX_BUF];
   char* recv_buf = new char[MAX_BUF / p];
-  int numCharsToSend;
+  int numCharsToSend = 0;
   if(rank == 0) {
       std::ifstream is("dna.txt");
       if (is.fail()) {
@@ -57,8 +57,14 @@ int main (int argc, char *argv[]) {
         n[i] = '\0';
       }
       numCharsToSend = (allChars.length() / p) + ((strlen(n) % p) == 0 ? 0 : 1);
+      for(int i = 1; i < p; ++i) {
+        MPI_Send(&numCharsToSend, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+      }
+  } else {
+    MPI_Status status;
+    MPI_Recv(&numCharsToSend, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
   }
-  // TODO: Scatter chunks of the string instead of an int
+  // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
 
@@ -96,8 +102,6 @@ int main (int argc, char *argv[]) {
   }
 
   delete(recv_buf);
-
-
 
   // Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   check_error(MPI_Reduce(&A_Count_loc, &A_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
