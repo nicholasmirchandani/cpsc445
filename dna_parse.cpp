@@ -136,7 +136,7 @@ int main (int argc, char *argv[]) {
   }
 
   delete(recv_buf);
-  std::cout << "Scattered recv_buf: " << recv_buf << " first char is " << (int) recv_buf[0] << "  DEBUG: Count AAA " << counts[0] << std::endl;
+  std::cout << "DEBUG: first char is " << (int) recv_buf[0] << "  DEBUG: Count AAA " << counts[0] << std::endl;
 
   // Sum the counts to output them
   check_error(MPI_Reduce(&counts, &counts_final, 64, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
