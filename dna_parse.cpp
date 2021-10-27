@@ -136,7 +136,9 @@ int main (int argc, char *argv[]) {
     for(int i = 0; i < 4; ++i) {
         for(int j = 0; j < 4; ++j) {
             for(int k = 0; k < 4; ++k) {
-                os << returnNucleotide(i) << returnNucleotide(j) << returnNucleotide(k) << " " << counts_final[i + 4 * j + 16 * k] << std::endl;
+                if(counts_final[i + 4 * j + 16 * k] != 0) {
+                    os << returnNucleotide(i) << returnNucleotide(j) << returnNucleotide(k) << " " << counts_final[i + 4 * j + 16 * k] << std::endl;
+                }
             }
         }
     }
