@@ -13,6 +13,20 @@ void check_error(int status, const string message="MPI error") {
   }
 }
 
+char returnNucleotide(int num) {
+    switch(num) {
+        case 0:
+            return 'A';
+        case 1:
+            return 'C';
+        case 2:
+            return 'G';
+        case 3:
+            return 'T';
+        default:
+            return '?';
+    }
+}
 #define MAX_BUF 100000
 
 int main (int argc, char *argv[]) {
@@ -68,35 +82,48 @@ int main (int argc, char *argv[]) {
   // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
-  // Flip everything within the recv_buf
-  for(int i = 0; i < numCharsToSend; ++i) {
-    if(recv_buf[i] == '\0') {
-      // Break out of loop on null terminating character, since we don't know the length of the string
-      break;
+  // TODO: Count every trigram
+  const int A_KEY = 0;
+  const int C_KEY = 1;
+  const int G_KEY = 2;
+  const int T_KEY = 3;
+  int counts[4 * 4 * 4]; // Using counts[(first_key) + 4 * (second_key) + 16 * (third_key)]
+  for(int i = 0; i < 64; ++i) {
+      counts[i] = 0;
+  }
+  int counts_final[4 * 4 * 4];
+
+  int curKeys[3];
+  for(int i = 0; i < numCharsToSend; i += 3) {
+    int j;
+    for(j = i; j < i + 3; ++j) {
+        switch(recv_buf[j]) {
+            case 'A':
+                curKeys[j] = A_KEY;
+                break;
+            case 'C':
+                curKeys[j] = C_KEY;
+                break;
+            case 'G':
+                curKeys[j] = G_KEY;
+                break;
+            case 'T':
+                curKeys[j] = T_KEY;
+                break;
+        }
     }
-    switch(recv_buf[i]) {
-      case 'A':
-        recv_buf[i] = 'T';
-        break;
-      case 'C':
-        recv_buf[i] = 'G';
-        break;
-      case 'T':
-        recv_buf[i] = 'A';
-        break;
-      case 'G':
-        recv_buf[i] = 'C';
-        break;
-      default:
-        std::cout << "Unknown character detected. Character is ' " << recv_buf[i] << " ' Skipping" << std::endl;
-        break;
+
+    if (j <= numCharsToSend) {
+        int targetIndex = curKeys[i] + 4 * curKeys[i+1] + 16 * curKeys[i+2];
+        counts[targetIndex] = counts[targetIndex] + 1;
     }
   }
 
-  // Gather everything within the recv bufs and output
-  check_error(MPI_Gather(recv_buf, numCharsToSend, MPI_CHAR, n_final, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
-
   delete(recv_buf);
+
+  // Sum the counts to output them
+  check_error(MPI_Reduce(&counts, &counts_final, 64, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
+
 
   // Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   if (rank==0) {
@@ -106,7 +133,13 @@ int main (int argc, char *argv[]) {
         std::cout << "Unable to open output file.  Exiting " << std::endl;
     }
 
-    os << n_final;
+    for(int i = 0; i < 4; ++i) {
+        for(int j = 0; j < 4; ++j) {
+            for(int k = 0; k < 4; ++k) {
+                os << returnNucleotide(k) << returnNucleotide(j) << returnNucleotide(i) << " " << counts[k + 4 * j + 16 * i] << std::endl;
+            }
+        }
+    }
 
     os.close();
   }
