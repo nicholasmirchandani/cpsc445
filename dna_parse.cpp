@@ -135,6 +135,7 @@ int main (int argc, char *argv[]) {
     }
   }
 
+  std::cerr << "NumCharsToSend: " << numCharsToSend << std::endl;
   std::cout << "DEBUG: first char is " << (uint) recv_buf[0] << "  DEBUG: Count AAA " << counts[0] << std::endl;
   delete(recv_buf);
 
