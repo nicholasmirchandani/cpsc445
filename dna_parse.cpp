@@ -135,8 +135,8 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  delete(recv_buf);
   std::cout << "DEBUG: first char is " << (uint) recv_buf[0] << "  DEBUG: Count AAA " << counts[0] << std::endl;
+  delete(recv_buf);
 
   // Sum the counts to output them
   check_error(MPI_Reduce(&counts, &counts_final, 64, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
