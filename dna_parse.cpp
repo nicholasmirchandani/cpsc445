@@ -98,6 +98,8 @@ int main (int argc, char *argv[]) {
   }
   int counts_final[4 * 4 * 4];
 
+std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
+
   int curKeys[3];
   bool stopNow = false;
   for(int i = 0; i < numCharsToSend; i += 3) {
