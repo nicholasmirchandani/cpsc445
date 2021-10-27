@@ -52,12 +52,17 @@ int main (int argc, char *argv[]) {
       is.close();
 
       strcpy(n, allChars.c_str());
-      numCharsToSend = allChars.length();
+      for(int i = strlen(n); i < MAX_BUF; ++i) {
+      // Ensures 0s are padded after string as needed
+        n[i] = '\0';
+      }
+      numCharsToSend = (allChars.length() / p) + ((strlen(n) % p) == 0 ? 0 : 1);
   }
   // TODO: Scatter chunks of the string instead of an int
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
   // TODO: Count number of As, Cs, Ts, and Gs and store them separately
+  std::cout << "Recv_buf: " << recv_buf << std::endl;
 
   // TODO: Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   int A_Count = 0;
@@ -70,6 +75,10 @@ int main (int argc, char *argv[]) {
   int G_Count_loc = 0;
 
   for(int i = 0; i < numCharsToSend; ++i) { // NOTE: Assuming 10 is number of chars
+    if (recv_buf[i] == '\0') {
+      // Break out of loop on null terminating character, since we don't know the length of the string
+      break;
+    }
     switch(recv_buf[i]) {
       case 'A':
         ++A_Count_loc;
