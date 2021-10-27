@@ -119,7 +119,7 @@ int main (int argc, char *argv[]) {
             case 'T':
                 curKeys[j] = T_KEY;
                 break;
-            case '\0':
+            default:
                 stopNow = true;
                 break;
         }
