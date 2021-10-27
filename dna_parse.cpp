@@ -134,8 +134,8 @@ std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
 
     if (j <= numCharsToSend) {
         int targetIndex = curKeys[i] + 4 * curKeys[i+1] + 16 * curKeys[i+2];
-        std::cout << "adding to targetindex" << targetIndex << " " << std::endl;
-        counts[targetIndex] = counts[targetIndex] + 1;
+        std::cout << "adding to targetindex" << targetIndex << " with current value " << counts[targetIndex] << std::endl;
+        ++counts[targetIndex];
         std::cout << "targetIndex now has value of " << counts[targetIndex] << std::endl;
     }
   }
