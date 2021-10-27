@@ -130,8 +130,8 @@ int main (int argc, char *argv[]) {
     }
 
     if (j <= numCharsToSend) {
-        std::cout << "J ADDING! " << j << std::endl;
         int targetIndex = curKeys[i] + 4 * curKeys[i+1] + 16 * curKeys[i+2];
+        std::cout << "adding to targetindex" << targetIndex << " " << std::endl;
         counts[targetIndex] = counts[targetIndex] + 1;
     }
   }
