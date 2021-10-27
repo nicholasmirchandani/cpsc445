@@ -137,6 +137,7 @@ std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
         std::cout << "adding to targetindex" << targetIndex << " with current value " << counts[targetIndex] << std::endl;
         ++counts[targetIndex];
         std::cout << "targetIndex now has value of " << counts[targetIndex] << std::endl;
+        std::cout << "DEBUG: Middle count AAA " << counts[0] << std::endl;
     }
   }
 
