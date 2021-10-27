@@ -83,8 +83,6 @@ int main (int argc, char *argv[]) {
     MPI_Status status;
     MPI_Recv(&numCharsToSend, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
   }
-  // Scatter chunks of the string
-  check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
 
   // Count every trigram
@@ -99,6 +97,9 @@ int main (int argc, char *argv[]) {
   int counts_final[4 * 4 * 4];
 
 std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
+
+  // Scatter chunks of the string
+  check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
   int curKeys[3];
   bool stopNow = false;
