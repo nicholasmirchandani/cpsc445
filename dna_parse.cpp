@@ -72,6 +72,10 @@ int main (int argc, char *argv[]) {
         n[i] = '\0';
       }
       numCharsToSend = (allChars.length() / p) + ((strlen(n) % p) == 0 ? 0 : 1);
+      // Ensure that numCharsToSend is divisible by 3
+      while (numCharsToSend % 3 != 0) {
+          ++numCharsToSend;
+      }
       for(int i = 1; i < p; ++i) {
         MPI_Send(&numCharsToSend, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
       }
@@ -82,7 +86,8 @@ int main (int argc, char *argv[]) {
   // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
-  // TODO: Count every trigram
+
+  // Count every trigram
   const int A_KEY = 0;
   const int C_KEY = 1;
   const int G_KEY = 2;
@@ -94,9 +99,13 @@ int main (int argc, char *argv[]) {
   int counts_final[4 * 4 * 4];
 
   int curKeys[3];
+  bool stopNow = false;
   for(int i = 0; i < numCharsToSend; i += 3) {
     int j;
     for(j = i; j < i + 3; ++j) {
+        if (stopNow) { // Don't add extra counts if we've hit a null character
+            break;
+        }
         switch(recv_buf[j]) {
             case 'A':
                 curKeys[j] = A_KEY;
@@ -110,7 +119,14 @@ int main (int argc, char *argv[]) {
             case 'T':
                 curKeys[j] = T_KEY;
                 break;
+            case '\0':
+                stopNow = true;
+                break;
         }
+    }
+
+    if (stopNow) { // Don't add extra counts if we've hit a null character
+        break;
     }
 
     if (j <= numCharsToSend) {
