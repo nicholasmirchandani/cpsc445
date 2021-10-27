@@ -101,10 +101,8 @@ int main (int argc, char *argv[]) {
   int curKeys[3];
   bool stopNow = false;
   for(int i = 0; i < numCharsToSend; i += 3) {
-    for(int j = i; j < i + 3; ++j) {
-        if (j >= numCharsToSend) {
-            stopNow = true;
-        }
+    int j;
+    for(j = i; j < i + 3; ++j) {
         if (stopNow) { // Don't add extra counts if we've hit a null character
             break;
         }
@@ -131,8 +129,11 @@ int main (int argc, char *argv[]) {
         break;
     }
 
-    int targetIndex = curKeys[i] + 4 * curKeys[i+1] + 16 * curKeys[i+2];
-    counts[targetIndex] = counts[targetIndex] + 1;
+    if (j <= numCharsToSend) {
+        std::cout << "J ADDING! " << j << std::endl;
+        int targetIndex = curKeys[i] + 4 * curKeys[i+1] + 16 * curKeys[i+2];
+        counts[targetIndex] = counts[targetIndex] + 1;
+    }
   }
 
   std::cerr << "NumCharsToSend: " << numCharsToSend << std::endl;
