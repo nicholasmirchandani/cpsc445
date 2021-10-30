@@ -114,6 +114,14 @@ int main (int argc, char *argv[]) {
         states[index] = 2;
     }
 
+    if(recv_buf[i] == 'T' && recv_buf[i+1] == 'A' && recv_buf[i+2] == 'A') {
+        states[index] = 2;
+    }
+
+    if(recv_buf[i] == 'T' && recv_buf[i+1] == 'G' && recv_buf[i+2] == 'A') {
+        states[index] = 2;
+    }
+
   }
 
   delete[](recv_buf);
@@ -124,12 +132,16 @@ int main (int argc, char *argv[]) {
 
   // Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   if (rank==0) {
+    bool inGene = false;
+    int startIndex = -1;
     ofstream os("output.txt");
     for(int i = 0; i < MAX_BUF; ++i) {
-        if(states_final[i] == 1) {
-            std::cout << "Start at " << i << std::endl;
-        } else if (states_final[i] == 2) {
-            std::cout << "End at " << i << std::endl;
+        if(states_final[i] == 1 && !inGene) {
+            inGene = true;
+            startIndex = i;
+        } else if (states_final[i] == 2 && inGene) {
+            inGene = false;
+            os << startIndex << " " << i << std::endl;
         }
     }
 
