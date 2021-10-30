@@ -96,7 +96,7 @@ int main (int argc, char *argv[]) {
   // Gather everything within the recv bufs and output
   check_error(MPI_Gather(recv_buf, numCharsToSend, MPI_CHAR, n_final, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
 
-  delete(recv_buf);
+  delete[] (recv_buf);
 
   // Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   if (rank==0) {

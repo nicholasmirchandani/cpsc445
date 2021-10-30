@@ -101,7 +101,7 @@ int main (int argc, char *argv[]) {
     }
   }
 
-  delete(recv_buf);
+  delete[] (recv_buf);
 
   // Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   check_error(MPI_Reduce(&A_Count_loc, &A_Count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
