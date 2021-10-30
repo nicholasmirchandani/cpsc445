@@ -43,6 +43,11 @@ int main (int argc, char *argv[]) {
   // example code
   char n[MAX_BUF];
   char n_final[MAX_BUF];
+  short states[MAX_BUF]; // Storing 0 if it's not a start or end, 1 if it's a start, 2 if it's an end
+  short states_final[MAX_BUF];
+  for(int i = 0; i < MAX_BUF; ++i) {
+      states[i] = 0;
+  }
   char* recv_buf = new char[MAX_BUF / p];
   int numCharsToSend = 0;
   if(rank == 0) {
@@ -102,11 +107,11 @@ int main (int argc, char *argv[]) {
     // Print triplet for debug purposes
     index = startIndex + i/3;
     if(recv_buf[i] == 'A' && recv_buf[i+1] == 'T' && recv_buf[i+2] == 'G') {
-        std::cout << "Start at index " << index;
+        states[index] = 1;
     }
 
     if(recv_buf[i] == 'T' && recv_buf[i+1] == 'A' && recv_buf[i+2] == 'G') {
-        std::cout << "End at index " << index;
+        states[index] = 2;
     }
 
   }
@@ -114,12 +119,19 @@ int main (int argc, char *argv[]) {
   delete[](recv_buf);
 
   // Sum the counts to output them
-  check_error(MPI_Reduce(&counts[0], counts_final, 64, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD));
+  check_error(MPI_Reduce(&states[0], states_final, MAX_BUF, MPI_SHORT, MPI_SUM, 0, MPI_COMM_WORLD));
 
 
   // Reduce counts of As, Cs, Ts, and Gs into process of rank 0, independently as 4 separate reduce calls
   if (rank==0) {
     ofstream os("output.txt");
+    for(int i = 0; i < MAX_BUF; ++i) {
+        if(states_final[i] == 1) {
+            std::cout << "Start at " << i << std::endl;
+        } else if (states_final[i] == 2) {
+            std::cout << "End at " << i << std::endl;
+        }
+    }
 
     if(os.fail()) {
         std::cout << "Unable to open output file.  Exiting " << std::endl;
