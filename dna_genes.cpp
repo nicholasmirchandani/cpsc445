@@ -101,7 +101,14 @@ int main (int argc, char *argv[]) {
   for(int i = 0; i + 2 < numCharsToSend; i += 3) {
     // Print triplet for debug purposes
     index = startIndex + i/3;
-    std::cout << "Index: " << index << "  Triplet: " << recv_buf[i] << recv_buf[i+1] << recv_buf[i+2] << std::endl;
+    if(recv_buf[i] == 'A' && recv_buf[i+1] == 'T' && recv_buf[i+2] == 'G') {
+        std::cout << "Start at index " << index;
+    }
+
+    if(recv_buf[i] == 'T' && recv_buf[i+1] == 'A' && recv_buf[i+2] == 'G') {
+        std::cout << "End at index " << index;
+    }
+
   }
 
   delete[](recv_buf);
