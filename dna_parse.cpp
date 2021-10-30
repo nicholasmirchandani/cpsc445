@@ -76,14 +76,9 @@ int main (int argc, char *argv[]) {
       while (numCharsToSend % 3 != 0) {
           ++numCharsToSend;
       }
-      for(int i = 1; i < p; ++i) {
-        MPI_Send(&numCharsToSend, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-      }
-  } else {
-    MPI_Status status;
-    MPI_Recv(&numCharsToSend, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status);
   }
 
+  MPI_Bcast(&numCharsToSend, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Count every trigram
   const int A_KEY = 0;
