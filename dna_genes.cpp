@@ -42,7 +42,6 @@ int main (int argc, char *argv[]) {
 
   // example code
   char n[MAX_BUF];
-  char n_final[MAX_BUF];
   short states[MAX_BUF]; // Storing 0 if it's not a start or end, 1 if it's a start, 2 if it's an end
   short states_final[MAX_BUF];
   for(int i = 0; i < MAX_BUF; ++i) {
@@ -86,23 +85,12 @@ int main (int argc, char *argv[]) {
 
   MPI_Bcast(&numCharsToSend, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  // Count every trigram
-  const int A_KEY = 0;
-  const int C_KEY = 1;
-  const int G_KEY = 2;
-  const int T_KEY = 3;
-  std::vector<int> counts(4 * 4 * 4); // Using counts[(first_key) + 4 * (second_key) + 16 * (third_key)]
-  for(int i = 0; i < 64; ++i) {
-      counts[i] = 0;
-  }
-  int counts_final[4 * 4 * 4];
-
   // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
   int curKeys[3];
   int startIndex = numCharsToSend/3 * rank;
   int index;
-  bool stopNow = false;
+
   for(int i = 0; i + 2 < numCharsToSend; i += 3) {
     // Print triplet for debug purposes
     index = startIndex + i/3;

@@ -42,7 +42,6 @@ int main (int argc, char *argv[]) {
 
   // example code
   char n[MAX_BUF];
-  char n_final[MAX_BUF];
   char* recv_buf = new char[MAX_BUF / p];
   int numCharsToSend = 0;
   if(rank == 0) {
