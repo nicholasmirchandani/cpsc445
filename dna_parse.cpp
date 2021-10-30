@@ -93,7 +93,6 @@ int main (int argc, char *argv[]) {
   int counts_final[4 * 4 * 4];
 
   MPI_Barrier(MPI_COMM_WORLD);
-  std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
 
   // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
@@ -131,10 +130,7 @@ int main (int argc, char *argv[]) {
 
     if (j <= numCharsToSend) {
         int targetIndex = curKeys[i] + 4 * curKeys[i+1] + 16 * curKeys[i+2];
-        std::cout << "adding to targetindex" << targetIndex << " with current value " << counts[targetIndex] << std::endl;
         ++counts[targetIndex];
-        std::cout << "targetIndex now has value of " << counts[targetIndex] << std::endl;
-        std::cout << "DEBUG: Middle count AAA " << counts[0] << std::endl;
     }
   }
 
