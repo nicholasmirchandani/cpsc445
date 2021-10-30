@@ -86,7 +86,7 @@ int main (int argc, char *argv[]) {
   const int C_KEY = 1;
   const int G_KEY = 2;
   const int T_KEY = 3;
-  int counts[4 * 4 * 4]; // Using counts[(first_key) + 4 * (second_key) + 16 * (third_key)]
+  std::vector<int> counts(4 * 4 * 4); // Using counts[(first_key) + 4 * (second_key) + 16 * (third_key)]
   for(int i = 0; i < 64; ++i) {
       counts[i] = 0;
   }
