@@ -8,7 +8,7 @@ Assuming best topology for each step (despite not using BCast in  my code), runt
 
 Of course don't forget to add the m/p * tX of parallel computation
 
-So Speedup would be (m * tX) / (log(p) * ((20 + m/p) * tB + 6 * tL) + m/p * tX)
+So Speedup would be (m * tX) / (log(p) * ((20 + m) * tB + 6 * tL) + m/p * tX)
 
 
 
@@ -20,11 +20,11 @@ Speedup of dna_invert.cpp:
 Runtime for serial algorithm is just m * tX, where tX is the time taken to invert one character, and m is the total number of characters.
 
 Uses 1 BCast (done serially with send/recv), 1 Scatter, and 1 Gather.  BCast is an int (4 bytes) while scatter and gather use m chars (1 byte)
-Assuming best topology for each step, despite not using BCast in my code, runtime for comms is log(p) * (tB * 4 + tL) + log(p) * (tB * m + tL) + log(p) * (tB * m + tL) = log(p) * ((6 * m) * tB + 3 * tL)
+Assuming best topology for each step, despite not using BCast in my code, runtime for comms is log(p) * (tB * 4 + tL) + log(p) * (tB * m + tL) + log(p) * (tB * m + tL) = log(p) * ((4 + 2 * m) * tB + 3 * tL)
 
 Of course don't forget to add the m/p * tX of parallel computation
 
-So Speedup would be (m * tX) / (log(p) * ((6+m) * tB + 3 * tL) + m/p * tX)
+So Speedup would be (m * tX) / (log(p) * ((4 + 2 * m) * tB + 3 * tL) + m/p * tX)
 
 
 
