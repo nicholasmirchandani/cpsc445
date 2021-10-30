@@ -136,8 +136,6 @@ int main (int argc, char *argv[]) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  std::cerr << "NumCharsToSend: " << numCharsToSend << std::endl;
-  std::cout << "DEBUG: first char is " << (uint) recv_buf[0] << "  DEBUG: Count AAA " << counts[0] << std::endl;
   delete[](recv_buf);
 
   // Sum the counts to output them
