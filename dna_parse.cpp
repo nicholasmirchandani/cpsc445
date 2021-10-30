@@ -91,11 +91,12 @@ int main (int argc, char *argv[]) {
   }
   int counts_final[4 * 4 * 4];
 
-std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
+  MPI_Barrier(MPI_COMM_WORLD);
+  std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
 
   // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
-
+  MPI_Barrier(MPI_COMM_WORLD);
   int curKeys[3];
   bool stopNow = false;
   for(int i = 0; i < numCharsToSend; i += 3) {
@@ -135,6 +136,8 @@ std::cout << "DEBUG: Initial count AAA " << counts[0] << std::endl;
         std::cout << "DEBUG: Middle count AAA " << counts[0] << std::endl;
     }
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   std::cerr << "NumCharsToSend: " << numCharsToSend << std::endl;
   std::cout << "DEBUG: first char is " << (uint) recv_buf[0] << "  DEBUG: Count AAA " << counts[0] << std::endl;
