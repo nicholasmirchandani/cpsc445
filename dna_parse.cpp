@@ -92,11 +92,8 @@ int main (int argc, char *argv[]) {
   }
   int counts_final[4 * 4 * 4];
 
-  MPI_Barrier(MPI_COMM_WORLD);
-
   // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
-  MPI_Barrier(MPI_COMM_WORLD);
   int curKeys[3];
   bool stopNow = false;
   for(int i = 0; i < numCharsToSend; i += 3) {
@@ -133,8 +130,6 @@ int main (int argc, char *argv[]) {
         ++counts[targetIndex];
     }
   }
-
-  MPI_Barrier(MPI_COMM_WORLD);
 
   delete[](recv_buf);
 
