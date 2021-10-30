@@ -95,10 +95,13 @@ int main (int argc, char *argv[]) {
   // Scatter chunks of the string
   check_error(MPI_Scatter(n, numCharsToSend, MPI_CHAR, recv_buf, numCharsToSend, MPI_CHAR, 0, MPI_COMM_WORLD));
   int curKeys[3];
+  int startIndex = numCharsToSend/3 * rank;
+  int index;
   bool stopNow = false;
   for(int i = 0; i + 2 < numCharsToSend; i += 3) {
     // Print triplet for debug purposes
-    std::cout << "Triplet: " << recv_buf[i] << recv_buf[i+1] << recv_buf[i+2] << std::endl;
+    index = startIndex + i/3;
+    std::cout << "Index: " << index << "  Triplet: " << recv_buf[i] << recv_buf[i+1] << recv_buf[i+2] << std::endl;
   }
 
   delete[](recv_buf);
