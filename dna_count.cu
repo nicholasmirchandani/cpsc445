@@ -6,9 +6,13 @@
 #define MAX_BUF 10000
 
 __global__ void count_step_1(char* dn, int* dsums, int numChars) {
-
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
+
+    for(int i = 0; i < 4; ++i) {
+        dsums[i + 4 * offset] = 0;
+    }
+    
     for(int i = offset; i < numChars; i += shift) {
         switch(dn[i]) {
             case 'A':
@@ -26,24 +30,23 @@ __global__ void count_step_1(char* dn, int* dsums, int numChars) {
         }
     }
 
-    __shared__ int tmpsums[16]; // 16 for 4 threads per block
-    
-    tmpsums[0 + 4 * threadIdx.x] = dsums[0 + 4 * offset];    
-    tmpsums[1 + 4 * threadIdx.x] = dsums[1 + 4 * offset];
-    tmpsums[2 + 4 * threadIdx.x] = dsums[2 + 4 * offset];
-    tmpsums[3 + 4 * threadIdx.x] = dsums[3 + 4 * offset];    
     __syncthreads();
-    /*tmpsums[0 + 4 * threadIdx.x] += dsums[0 + 4 * offset];    
-    tmpsums[1 + 4 * threadIdx.x] += dsums[1 + 4 * offset];
-    tmpsums[2 + 4 * threadIdx.x] += dsums[2 + 4 * offset];
-    tmpsums[3 + 4 * threadIdx.x] += dsums[3 + 4 * offset];*/ 
+    __shared__ int tmpsums[16]; // 16 for 4 threads per block
+
+    tmpsums[0 + (4 * threadIdx.x)] = dsums[0 + 4 * offset];    
+    tmpsums[1 + (4 * threadIdx.x)] = dsums[1 + 4 * offset];
+    tmpsums[2 + (4 * threadIdx.x)] = dsums[2 + 4 * offset];
+    tmpsums[3 + (4 * threadIdx.x)] = dsums[3 + 4 * offset];    
+
+    __syncthreads();
+
+    int i = threadIdx.x;
     for(int delta = 1; delta < blockDim.x; delta *= 2) {
-        int i = threadIdx.x;
         if((i + delta) < blockDim.x) {
-            tmpsums[0 + 4 * i] = tmpsums[0 + 4 * i] + tmpsums[0 + 4 * (i + 1)];
-            tmpsums[1 + 4 * i] = tmpsums[1 + 4 * i] + tmpsums[1 + 4 * (i + 1)];
-            tmpsums[2 + 4 * i] = tmpsums[2 + 4 * i] + tmpsums[2 + 4 * (i + 1)];
-            tmpsums[3 + 4 * i] = tmpsums[3 + 4 * i] + tmpsums[3 + 4 * (i + 1)];
+            tmpsums[0 + 4 * i] = tmpsums[0 + 4 * i] + tmpsums[0 + 4 * (i + delta)];
+            tmpsums[1 + 4 * i] = tmpsums[1 + 4 * i] + tmpsums[1 + 4 * (i + delta)];
+            tmpsums[2 + 4 * i] = tmpsums[2 + 4 * i] + tmpsums[2 + 4 * (i + delta)];
+            tmpsums[3 + 4 * i] = tmpsums[3 + 4 * i] + tmpsums[3 + 4 * (i + delta)];
         }
         __syncthreads();
     }
@@ -52,32 +55,41 @@ __global__ void count_step_1(char* dn, int* dsums, int numChars) {
 
     // Combine all threads within the same block; Currently issue with shared memory not being used properly
 
-    dsums[0 + 4 * offset] = tmpsums[0 + 4 * threadIdx.x];    
-    dsums[1 + 4 * offset] = tmpsums[1 + 4 * threadIdx.x];
-    dsums[2 + 4 * offset] = tmpsums[2 + 4 * threadIdx.x];
-    dsums[3 + 4 * offset] = tmpsums[3 + 4 * threadIdx.x];    
+    offset = blockDim.x * blockIdx.x;
+    dsums[0 + 4 * offset] = tmpsums[0];    
+    dsums[1 + 4 * offset] = tmpsums[1];
+    dsums[2 + 4 * offset] = tmpsums[2];
+    dsums[3 + 4 * offset] = tmpsums[3];    
 }
 
 __global__ void count_step_2(int* dsums, int W) {
-    /*int offset = blockIdx.x * blockDim.x + threadIdx.x; // NOTE: blockDim should be 1 and blockIdx should be 0
-    __shared__ int tmpsums[4];
-
-    tmpsums[0] = 0;    
-    tmpsums[1] = 0;
-    tmpsums[2] = 0;
-    tmpsums[3] = 0;    
-    __syncthreads();
-    tmpsums[0] += dsums[0 + 4 * threadIdx.x * W];    
-    tmpsums[1] += dsums[1 + 4 * threadIdx.x * W];
-    tmpsums[2] += dsums[2 + 4 * threadIdx.x * W];
-    tmpsums[3] += dsums[3 + 4 * threadIdx.x * W];    
+    int offset = blockIdx.x * blockDim.x + threadIdx.x; // NOTE: blockDim should be 1 and blockIdx should be 0
     
+    __shared__ int tmpsums[16]; // 16 for 4 threads per block
+
+    tmpsums[0 + (4 * threadIdx.x)] = dsums[0 + 4 * W * offset];    
+    tmpsums[1 + (4 * threadIdx.x)] = dsums[1 + 4 * W * offset];
+    tmpsums[2 + (4 * threadIdx.x)] = dsums[2 + 4 * W * offset];
+    tmpsums[3 + (4 * threadIdx.x)] = dsums[3 + 4 * W * offset];    
+
     __syncthreads();
 
-    dsums[0 + 4 * offset] = tmpsums[0 + 4 * threadIdx.x];    
-    dsums[1 + 4 * offset] = tmpsums[1 + 4 * threadIdx.x];
-    dsums[2 + 4 * offset] = tmpsums[2 + 4 * threadIdx.x];
-    dsums[3 + 4 * offset] = tmpsums[3 + 4 * threadIdx.x];  */
+    int i = threadIdx.x;
+    for(int delta = 1; delta < blockDim.x; delta *= 2) {
+        if((i + delta) < blockDim.x) {
+            tmpsums[0 + 4 * i] = tmpsums[0 + 4 * i] + tmpsums[0 + 4 * (i + delta)];
+            tmpsums[1 + 4 * i] = tmpsums[1 + 4 * i] + tmpsums[1 + 4 * (i + delta)];
+            tmpsums[2 + 4 * i] = tmpsums[2 + 4 * i] + tmpsums[2 + 4 * (i + delta)];
+            tmpsums[3 + 4 * i] = tmpsums[3 + 4 * i] + tmpsums[3 + 4 * (i + delta)];
+        }
+        __syncthreads();
+    }
+    
+    dsums[0] = tmpsums[0];    
+    dsums[1] = tmpsums[1];
+    dsums[2] = tmpsums[2];
+    dsums[3] = tmpsums[3];   
+
 }
 
 int main() {
@@ -118,7 +130,7 @@ int main() {
 
     char* dn;
     int* dsums;
-    int numBlocks = 1;
+    int numBlocks = 4;
     int numThreads = 4;
     cudaMalloc((void**) &dn, MAX_BUF * sizeof(char));
     cudaMalloc((void**) &dsums, 4 * numThreads * numBlocks * sizeof(int));
@@ -129,9 +141,9 @@ int main() {
     count_step_1<<<numBlocks, numThreads>>>(dn, dsums, strlen(n));
     cudaDeviceSynchronize();
 
-    // std::cout << "Step 2!" << std::endl;
-    // count_step_2<<<1, numBlocks>>>(dsums, numThreads);
-    // cudaDeviceSynchronize();
+    std::cout << "Step 2!" << std::endl;
+    count_step_2<<<1, numBlocks>>>(dsums, numThreads);
+    cudaDeviceSynchronize();
 
     cudaMemcpy(sums, dsums, 4 * sizeof(int), cudaMemcpyDeviceToHost);
     cudaFree(dn);
