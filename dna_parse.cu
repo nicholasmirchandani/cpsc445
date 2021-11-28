@@ -31,33 +31,42 @@ __global__ void count_step_1(char* dn, int* dsums, int numChars) {
     // Count every trigram
     const int A_KEY = 0;
     const int C_KEY = 1;
-    const int T_KEY = 2;
-    const int G_KEY = 3;
+    const int G_KEY = 2;
+    const int T_KEY = 3;
     
     int curKeys[3];
 
     numChars = (numChars / shift) + ((numChars % shift) == 0 ? 0 : 1);
     offset *= numChars;
 
-    for(int i = offset; i < numChars; i += 3) {
+    for(int i = offset; i < numChars + offset; i += 3) {
         curKeys[0] = 0;
         curKeys[1] = 1;
         curKeys[2] = 2;
-        for(int j = i; j < i + 3; ++j) {
+        int j;
+        bool stopNow = false;
+        for(j = i; j < i + 3; ++j) {
             switch(dn[j]) {
                 case 'A':
-                    curKeys[j] = A_KEY;
+                    curKeys[j-i] = A_KEY;
                     break;
                 case 'C':
-                    curKeys[j] = C_KEY;
+                    curKeys[j-i] = C_KEY;
                     break;
                 case 'T':
-                    curKeys[j] = T_KEY;
+                    curKeys[j-i] = T_KEY;
                     break;
                 case 'G':
-                    curKeys[j] = G_KEY;
+                    curKeys[j-i] = G_KEY;
+                    break;
+                default:
+                    stopNow = true;
                     break;
             }
+        }
+
+        if(stopNow) {
+            break;
         }
         int targetIndex = curKeys[2] * 16 + curKeys[1] * 4 + curKeys[0];
         dsums[targetIndex + 64 * offset] += 1;
@@ -78,7 +87,9 @@ __global__ void count_step_1(char* dn, int* dsums, int numChars) {
                 tmpsums[i + 64 * threadIdx.x] = tmpsums[i + 64 * threadIdx.x] + tmpsums[i + 64 * (delta + threadIdx.x)];
             }
         }
+        __syncthreads();
     }
+
     __syncthreads();
 
     // Combine all threads within the same block; Currently issue with shared memory not being used properly
@@ -105,7 +116,7 @@ __global__ void count_step_2(int* dsums, int W) {
     for(int delta = 1; delta < blockDim.x; delta *= 2) {
         if((threadIdx.x + delta) < blockDim.x) {
             for(int i = 0; i < 64; ++i) {
-                tmpsums[i + 64 * threadIdx.x] = tmpsums[i + 64 * threadIdx.x] + tmpsums[i + 64 * (i + delta)];
+                tmpsums[i + 64 * threadIdx.x] = tmpsums[i + 64 * threadIdx.x] + tmpsums[i + 64 * (threadIdx.x + delta)];
             }
         }
         __syncthreads();
@@ -183,9 +194,9 @@ int main() {
     for(int i = 0; i < 4; ++i) {
         for(int j = 0; j < 4; ++j) {
             for(int k = 0; k < 4; ++k) {
-                // if(sums[i + 4 * j + 16 * k] != 0) {
+                if(sums[i + 4 * j + 16 * k] != 0) {
                     os << returnNucleotide(i) << returnNucleotide(j) << returnNucleotide(k) << " " << sums[i + 4 * j + 16 * k] << std::endl;
-                // }
+                }
             }
         }
     }
