@@ -37,6 +37,9 @@ __global__ void count_step_1(char* dn, int* dsums, int numChars) {
     int curKeys[3];
 
     numChars = (numChars / shift) + ((numChars % shift) == 0 ? 0 : 1);
+    while(numChars % 3 != 0) {
+        ++numChars;
+    }
     offset *= numChars;
 
     for(int i = offset; i < numChars + offset; i += 3) {
