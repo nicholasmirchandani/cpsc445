@@ -3,6 +3,7 @@
 #include <string>
 #include <cstring>
 
+
 #define MAX_BUF 10000
 
 __global__ void genes_calc(char* dn, int* dstates, int numChars) {
