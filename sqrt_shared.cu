@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
 
 #define MAX_BUF 1000
 
@@ -36,13 +37,16 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
             element += c;
         }
 
-        nums[numFloats++] = std::stof(element);
+        if (element != "") {
+            nums[numFloats++] = std::stof(element);
+        }
     }
 }
 
 __global__ void cuda_sqrt(float* dnums, int numFloats) {
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
+
     __shared__ float nums[MAX_BUF];
 
     // Copy input to shared memory
@@ -86,7 +90,7 @@ int main() {
     }
 
     for(int i = 0; i < numFloats - 1; ++i) {
-        os << nums[i] << ", ";
+        os << nums[i] << std::endl;
     }
     // Last element shouldn't have comma space after it
     os << nums[numFloats-1];

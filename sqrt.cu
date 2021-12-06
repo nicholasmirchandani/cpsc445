@@ -28,7 +28,6 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
         for(char c : line) {
             if(c == ' ' || c == ',') {
                 if(element != "") {
-                    std::cout << "Adding element " << element << std::endl;
                     nums[numFloats++] = std::stof(element);
                     element = "";
                 }
@@ -39,7 +38,6 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
         }
 
         if (element != "") {
-            std::cout << "Adding element " << element << std::endl;
             nums[numFloats++] = std::stof(element);
         }
     }
@@ -58,13 +56,7 @@ int main() {
     float nums[MAX_BUF];
     int numFloats = 0;
 
-    std::cout << "File being read: " << std::endl;
-
-    system("cat input.csv");
-
-    std::cout << "CSV NOT READ YET!" << std::endl;
     readCSV(nums, numFloats, "input.csv");
-    std::cout << "CSV READ!" << std::endl;
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
     float* dnums;
