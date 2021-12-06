@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
+#include <iomanip>      // std::setprecision
 
 #define MAX_BUF 1000
 
@@ -83,6 +85,7 @@ int main() {
         std::cout << "Unable to open output file.  Exiting " << std::endl;
     }
 
+    os << std::setprecision(15);
     for(int i = 0; i < numFloats - 1; ++i) {
         os << nums[i] << ", ";
     }
