@@ -120,11 +120,14 @@ int main() {
         std::cout << "Unable to open output file.  Exiting " << std::endl;
     }
 
+    std::cout << std::endl << "RESULTS: " << std::endl;
+
     for(int i = 0; i < numFloats - 1; ++i) {
         int rowNum = i / floatsPerRow;
         int colNum = i % floatsPerRow;
         if(isExtreme[i]) {
             os << rowNum << "," << colNum << std::endl;
+            std::cout << rowNum << "," << colNum << std::endl; //writing to cout since CI may not be properly checking file
         }
     }
 
