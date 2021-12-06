@@ -3,7 +3,7 @@
 #include <string>
 #include <cmath>
 
-#define MAX_BUF 1000
+#define MAX_BUF 20000
 
 void readCSV(float* nums, int& numFloats, std::string filename) {
     std::ifstream is(filename);
@@ -55,10 +55,6 @@ __global__ void cuda_sqrt(float* dnums, int numFloats) {
 int main() {
     float nums[MAX_BUF];
     int numFloats = 0;
-
-    std::cout << "File being read: " << std::endl;
-
-    system("cat input.csv");
 
     readCSV(nums, numFloats, "input.csv");
 
