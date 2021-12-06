@@ -4,32 +4,8 @@
 
 #define MAX_BUF 1000
 
-__global__ void cuda_sqrt(float* dnums, int numFloats) {
-    int shift = gridDim.x * blockDim.x;
-    int offset = blockIdx.x * blockDim.x + threadIdx.x;
-    __shared__ float nums[MAX_BUF];
-
-    // Copy input to shared memory
-    for(int i = offset; i < numFloats; i += shift) {
-        nums[i] = dnums[i];
-    }
-
-    // Compute the sqrt in place
-    for(int i = offset; i < numFloats; i += shift) {
-        nums[i] = sqrt(nums[i]);
-    }
-
-    // Copy shared memory back to global device memory
-    for(int i = offset; i < numFloats; i += shift) {
-        dnums[i] = nums[i];
-    }
-}
-
-int main() {
-    float nums[MAX_BUF];
-    int numFloats = 0;
-
-    std::ifstream is("input.csv");
+void readCSV(float* nums, int& numFloats, std::string filename) {
+    std::ifstream is(filename);
 
     if (is.fail()) {
         std::cout << "Unable to open dna file.  Exiting " << std::endl;
@@ -59,8 +35,37 @@ int main() {
 
             element += c;
         }
-        if(element != "") nums[numFloats++] = std::stof(element);
+
+        nums[numFloats++] = std::stof(element);
     }
+}
+
+__global__ void cuda_sqrt(float* dnums, int numFloats) {
+    int shift = gridDim.x * blockDim.x;
+    int offset = blockIdx.x * blockDim.x + threadIdx.x;
+    __shared__ float nums[MAX_BUF];
+
+    // Copy input to shared memory
+    for(int i = offset; i < numFloats; i += shift) {
+        nums[i] = dnums[i];
+    }
+
+    // Compute the sqrt in place
+    for(int i = offset; i < numFloats; i += shift) {
+        nums[i] = sqrt(nums[i]);
+    }
+
+    // Copy shared memory back to global device memory
+    for(int i = offset; i < numFloats; i += shift) {
+        dnums[i] = nums[i];
+    }
+}
+
+int main() {
+    float nums[MAX_BUF];
+    int numFloats = 0;
+
+    readCSV(nums, numFloats, "input.csv");
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
     float* dnums;
