@@ -17,7 +17,6 @@ void readCSV(float* nums, int& numFloats, int& floatsPerRow, std::string filenam
     std::string line;
     while(is.good()) {
         std::getline(is, line);
-        std::cout << "Line read: " << line << std::endl;
 
         // Remove trailing newline, carriage returns
         while(line[line.length()-1] == '\n' || line[line.length()-1] == '\r' || line[line.length()-1] == ',') {
@@ -44,10 +43,8 @@ void readCSV(float* nums, int& numFloats, int& floatsPerRow, std::string filenam
     
         if(floatsPerRow == -1) {
             floatsPerRow = numFloats;
-            std::cout << "Floats per row set!" << std::endl;
         }
     }
-    std::cout << "is is not good :(" << std::endl;
 }
 
 __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, bool* disExtreme) {
@@ -80,7 +77,6 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
 }
 
 int main() {
-    std::cout << "MAIN!" << std::endl;
     float nums[MAX_BUF];
     bool isExtreme[MAX_BUF];
     int numFloats = 0;
@@ -89,7 +85,6 @@ int main() {
     system("head input.csv");
 
     readCSV(nums, numFloats, floatsPerRow, "input.csv");
-    std::cout << "Numfloats: " << numFloats << std::endl;
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
     float* dnums;
@@ -102,7 +97,6 @@ int main() {
     int numBlocks = 2;
     int numThreads = 4;
 
-    std::cout << "Find extremes!" << std::endl;
     find_extremes<<<numBlocks, numThreads>>>(dnums, numFloats, floatsPerRow, disExtreme);
     cudaDeviceSynchronize();
 
@@ -114,13 +108,11 @@ int main() {
         std::cout << "Unable to open output file.  Exiting " << std::endl;
     }
 
-
-    std::cout << "RESULTS: " << std::endl << std::endl;
     for(int i = 0; i < numFloats - 1; ++i) {
         int rowNum = i / floatsPerRow;
         int colNum = i % floatsPerRow;
         if(isExtreme[i]) {
-            std::cout << colNum + 1 << "," << rowNum + 1 << std::endl;
+            std::cout << rowNum << "," << colNum << std::endl;
         }
     }
 
