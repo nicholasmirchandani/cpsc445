@@ -64,7 +64,8 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
 
                 int neighborIndex = i + j * floatsPerRow + k * 1;
                 if(neighborIndex < 0 || neighborIndex >= numFloats) {
-
+                    isMin = isMin && (dnums[i] < 0); // Neighbor :)
+                    isMax = isMax && (dnums[i] > 0);
                 } else {
                     isMin = isMin && (dnums[i] < dnums[i + j * floatsPerRow + k * 1]); // Neighbor :)
                     isMax = isMax && (dnums[i] > dnums[i + j * floatsPerRow + k * 1]);
