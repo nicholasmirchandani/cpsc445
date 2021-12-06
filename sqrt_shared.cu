@@ -3,7 +3,7 @@
 #include <string>
 #include <cmath>
 
-#define MAX_BUF 20000
+#define MAX_BUF 200000
 
 void readCSV(float* nums, int& numFloats, std::string filename) {
     std::ifstream is(filename);
