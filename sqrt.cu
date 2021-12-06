@@ -2,11 +2,10 @@
 #include <fstream>
 #include <string>
 #include <cmath>
-#include <iomanip>      // std::setprecision
 
 #define MAX_BUF 1000
 
-void readCSV(double* nums, int& numFloats, std::string filename) {
+void readCSV(float* nums, int& numFloats, std::string filename) {
     std::ifstream is(filename);
 
     if (is.fail()) {
@@ -30,7 +29,7 @@ void readCSV(double* nums, int& numFloats, std::string filename) {
             if(c == ' ' || c == ',') {
                 if(element != "") {
                     std::cout << "Adding element " << element << std::endl;
-                    nums[numFloats++] = std::stod(element);
+                    nums[numFloats++] = std::stof(element);
                     element = "";
                 }
                 continue;
@@ -41,12 +40,12 @@ void readCSV(double* nums, int& numFloats, std::string filename) {
 
         if (element != "") {
             std::cout << "Adding element " << element << std::endl;
-            nums[numFloats++] = std::stod(element);
+            nums[numFloats++] = std::stof(element);
         }
     }
 }
 
-__global__ void cuda_sqrt(double* dnums, int numFloats) {
+__global__ void cuda_sqrt(float* dnums, int numFloats) {
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -56,7 +55,7 @@ __global__ void cuda_sqrt(double* dnums, int numFloats) {
 }
 
 int main() {
-    double nums[MAX_BUF];
+    float nums[MAX_BUF];
     int numFloats = 0;
 
     std::cout << "File being read: " << std::endl;
@@ -68,16 +67,16 @@ int main() {
     std::cout << "CSV READ!" << std::endl;
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
-    double* dnums;
-    cudaMalloc((void**) &dnums, numFloats * sizeof(double));
-    cudaMemcpy(dnums, nums, numFloats * sizeof(double), cudaMemcpyHostToDevice);
+    float* dnums;
+    cudaMalloc((void**) &dnums, numFloats * sizeof(float));
+    cudaMemcpy(dnums, nums, numFloats * sizeof(float), cudaMemcpyHostToDevice);
 
     int numBlocks = 2;
     int numThreads = 4;
 
     cuda_sqrt<<<numBlocks, numThreads>>>(dnums, numFloats);
 
-    cudaMemcpy(nums, dnums, numFloats * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(nums, dnums, numFloats * sizeof(float), cudaMemcpyDeviceToHost);
 
     std::ofstream os("output.csv");
 
@@ -85,9 +84,8 @@ int main() {
         std::cout << "Unable to open output file.  Exiting " << std::endl;
     }
 
-    os << std::setprecision(15);
     for(int i = 0; i < numFloats - 1; ++i) {
-        os << nums[i] << ", ";
+        os << nums[i] << std::endl;
     }
     // Last element shouldn't have comma space after it
     os << nums[numFloats-1];
