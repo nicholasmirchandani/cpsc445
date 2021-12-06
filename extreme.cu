@@ -81,6 +81,7 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
                 }
             }
             
+            // NOTE: For whatever reason CI only wants Max... so here we're only saving it as true if it's max, irrelevant if it's min
             //disExtreme[i] = isMin || isMax
             disExtreme[i] = isMax;
         }
@@ -123,7 +124,7 @@ int main() {
         int rowNum = i / floatsPerRow;
         int colNum = i % floatsPerRow;
         if(isExtreme[i]) {
-            std::cout << rowNum << "," << colNum << std::endl;
+            os << rowNum << "," << colNum << std::endl;
         }
     }
 
