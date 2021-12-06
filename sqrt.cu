@@ -56,6 +56,10 @@ int main() {
     float nums[MAX_BUF];
     int numFloats = 0;
 
+    std::cout << "File being read: " << std::endl;
+
+    system("cat input.csv");
+
     readCSV(nums, numFloats, "input.csv");
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
