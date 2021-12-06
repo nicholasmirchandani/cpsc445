@@ -45,7 +45,7 @@ __global__ void cuda_sqrt(float* dnums, int numFloats) {
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
     for(int i = offset; i < numFloats; i += shift) {
-        dnums[i] = sqrt(dnums[i]);
+        // dnums[i] = sqrt(dnums[i]);
     }
 }
 
