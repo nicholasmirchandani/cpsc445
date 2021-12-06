@@ -6,7 +6,7 @@
 
 #define MAX_BUF 1000
 
-void readCSV(float* nums, int& numFloats, std::string filename) {
+void readCSV(double* nums, int& numFloats, std::string filename) {
     std::ifstream is(filename);
 
     if (is.fail()) {
@@ -30,7 +30,7 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
             if(c == ' ' || c == ',') {
                 if(element != "") {
                     std::cout << "Adding element " << element << std::endl;
-                    nums[numFloats++] = std::stof(element);
+                    nums[numFloats++] = std::stod(element);
                     element = "";
                 }
                 continue;
@@ -41,12 +41,12 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
 
         if (element != "") {
             std::cout << "Adding element " << element << std::endl;
-            nums[numFloats++] = std::stof(element);
+            nums[numFloats++] = std::stod(element);
         }
     }
 }
 
-__global__ void cuda_sqrt(float* dnums, int numFloats) {
+__global__ void cuda_sqrt(double* dnums, int numFloats) {
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -56,7 +56,7 @@ __global__ void cuda_sqrt(float* dnums, int numFloats) {
 }
 
 int main() {
-    float nums[MAX_BUF];
+    double nums[MAX_BUF];
     int numFloats = 0;
 
     std::cout << "File being read: " << std::endl;
@@ -68,16 +68,16 @@ int main() {
     std::cout << "CSV READ!" << std::endl;
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
-    float* dnums;
-    cudaMalloc((void**) &dnums, numFloats * sizeof(float));
-    cudaMemcpy(dnums, nums, numFloats * sizeof(float), cudaMemcpyHostToDevice);
+    double* dnums;
+    cudaMalloc((void**) &dnums, numFloats * sizeof(double));
+    cudaMemcpy(dnums, nums, numFloats * sizeof(double), cudaMemcpyHostToDevice);
 
     int numBlocks = 2;
     int numThreads = 4;
 
     cuda_sqrt<<<numBlocks, numThreads>>>(dnums, numFloats);
 
-    cudaMemcpy(nums, dnums, numFloats * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(nums, dnums, numFloats * sizeof(double), cudaMemcpyDeviceToHost);
 
     std::ofstream os("output.csv");
 
