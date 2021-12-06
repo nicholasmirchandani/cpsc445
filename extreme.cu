@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
 
-#define MAX_BUF 1000
+#define MAX_BUF 200000
 
 void readCSV(float* nums, int& numFloats, std::string filename) {
     std::ifstream is(filename);
@@ -36,11 +37,13 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
             element += c;
         }
 
-        nums[numFloats++] = std::stof(element);
+        if (element != "") {
+            nums[numFloats++] = std::stof(element);
+        }
     }
 }
 
-__global__ void find_extreme(float* dnums, int numFloats) {
+__global__ void cuda_sqrt(float* dnums, int numFloats) {
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -53,6 +56,8 @@ int main() {
     float nums[MAX_BUF];
     int numFloats = 0;
 
+    system("head input.csv");
+
     readCSV(nums, numFloats, "input.csv");
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
@@ -63,7 +68,7 @@ int main() {
     int numBlocks = 2;
     int numThreads = 4;
 
-    find_extreme<<<numBlocks, numThreads>>>(dnums, numFloats);
+    cuda_sqrt<<<numBlocks, numThreads>>>(dnums, numFloats);
 
     cudaMemcpy(nums, dnums, numFloats * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -74,7 +79,7 @@ int main() {
     }
 
     for(int i = 0; i < numFloats - 1; ++i) {
-        os << nums[i] << ", ";
+        os << nums[i] << std::endl;
     }
     // Last element shouldn't have comma space after it
     os << nums[numFloats-1];
