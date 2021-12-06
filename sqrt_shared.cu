@@ -69,6 +69,8 @@ int main() {
     float nums[MAX_BUF];
     int numFloats = 0;
 
+    system("head input.csv");
+
     readCSV(nums, numFloats, "input.csv");
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
