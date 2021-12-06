@@ -27,7 +27,8 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
         for(char c : line) {
             if(c == ' ' || c == ',') {
                 if(element != "") {
-                    //nums[numFloats++] = std::stof(element);
+                    std::cout << "Adding element " << element << std::endl;
+                    nums[numFloats++] = std::stof(element);
                     element = "";
                 }
                 continue;
@@ -36,7 +37,10 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
             element += c;
         }
 
-        //nums[numFloats++] = std::stof(element);
+        if (element != "") {
+            std::cout << "Adding element " << element << std::endl;
+            nums[numFloats++] = std::stof(element);
+        }
     }
 }
 
@@ -45,7 +49,7 @@ __global__ void cuda_sqrt(float* dnums, int numFloats) {
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
     for(int i = offset; i < numFloats; i += shift) {
-        // dnums[i] = sqrt(dnums[i]);
+        dnums[i] = sqrt(dnums[i]);
     }
 }
 
@@ -53,8 +57,13 @@ int main() {
     float nums[MAX_BUF];
     int numFloats = 0;
 
+    std::cout << "File being read: " << std::endl;
+
     system("cat input.csv");
+
+    std::cout << "CSV NOT READ YET!" << std::endl;
     readCSV(nums, numFloats, "input.csv");
+    std::cout << "CSV READ!" << std::endl;
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
     float* dnums;
@@ -78,7 +87,7 @@ int main() {
         os << nums[i] << ", ";
     }
     // Last element shouldn't have comma space after it
-    // os << nums[numFloats-1];
+    os << nums[numFloats-1];
 
     os.close();
 
