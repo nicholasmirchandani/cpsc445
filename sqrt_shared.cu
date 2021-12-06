@@ -59,8 +59,7 @@ int main() {
 
             element += c;
         }
-
-        nums[numFloats++] = std::stof(element);
+        if(element != "") nums[numFloats++] = std::stof(element);
     }
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
