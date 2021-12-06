@@ -113,7 +113,7 @@ int main() {
         int rowNum = i / floatsPerRow;
         int colNum = i % floatsPerRow;
         if(isExtreme[i]) {
-            std::cout << "(" << colNum << "," << rowNum << ")" << std::endl;
+            std::cout << colNum << "," << rowNum << std::endl;
         }
     }
 
