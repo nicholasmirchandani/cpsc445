@@ -3,7 +3,7 @@
 #include <string>
 #include <cmath>
 
-#define MAX_BUF 10000
+#define MAX_BUF 200000
 
 void readCSV(float* nums, int& numFloats, std::string filename) {
     std::ifstream is(filename);
@@ -47,22 +47,15 @@ __global__ void cuda_sqrt(float* dnums, int numFloats) {
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
-    __shared__ float nums[MAX_BUF];
+    __shared__ float nums[4]; // Since 4 threads per block only need 4
 
-    // Copy input to shared memory
+
     for(int i = offset; i < numFloats; i += shift) {
-        nums[i] = dnums[i];
+        nums[threadIdx.x] = dnums[i];
+        nums[threadIdx.x] = sqrt(nums[threadIdx.x]);
+        dnums[i] = nums[threadIdx.x];
     }
 
-    // Compute the sqrt in place
-    for(int i = offset; i < numFloats; i += shift) {
-        nums[i] = sqrt(nums[i]);
-    }
-
-    // Copy shared memory back to global device memory
-    for(int i = offset; i < numFloats; i += shift) {
-        dnums[i] = nums[i];
-    }
 }
 
 int main() {
