@@ -58,7 +58,7 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
         int rowNum = i / floatsPerRow;
         int colNum = i % floatsPerRow;
 
-        if(rowNum == 0 || colNum == 0 || colNum == floatsPerRow || rowNum == numFloats/floatsPerRow) {
+        if(rowNum == 0 || colNum == 0 || colNum == floatsPerRow-1 || rowNum == (numFloats/floatsPerRow)-1) {
             disExtreme[i] = false;
         } else {
             // For 8 neighbors, where i - floatsPerRow - 1 is top left and i + floatsPerRow + 1 is bottom right
@@ -81,7 +81,8 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
                 }
             }
             
-            disExtreme[i] = isMin || isMax;
+            //disExtreme[i] = isMin || isMax
+            disExtreme[i] = isMax;
         }
     }
 }
