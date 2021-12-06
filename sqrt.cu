@@ -77,7 +77,7 @@ int main() {
         os << nums[i] << ", ";
     }
     // Last element shouldn't have comma space after it
-    os << nums[numFloats-1];
+    // os << nums[numFloats-1];
 
     os.close();
 
