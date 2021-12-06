@@ -97,6 +97,7 @@ int main() {
 
     std::cout << "Find extremes!" << std::endl;
     find_extremes<<<numBlocks, numThreads>>>(dnums, numFloats, floatsPerRow, disExtreme);
+    cudaDeviceSynchronize();
 
     cudaMemcpy(isExtreme, disExtreme, numFloats * sizeof(bool), cudaMemcpyDeviceToHost);
 
