@@ -27,7 +27,7 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
         for(char c : line) {
             if(c == ' ' || c == ',') {
                 if(element != "") {
-                    //nums[numFloats++] = std::stof(element);
+                    nums[numFloats++] = std::stof(element);
                     element = "";
                 }
                 continue;
@@ -36,11 +36,11 @@ void readCSV(float* nums, int& numFloats, std::string filename) {
             element += c;
         }
 
-        //nums[numFloats++] = std::stof(element);
+        nums[numFloats++] = std::stof(element);
     }
 }
 
-__global__ void cuda_sqrt(float* dnums, int numFloats) {
+__global__ void find_extreme(float* dnums, int numFloats) {
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -63,7 +63,7 @@ int main() {
     int numBlocks = 2;
     int numThreads = 4;
 
-    cuda_sqrt<<<numBlocks, numThreads>>>(dnums, numFloats);
+    find_extreme<<<numBlocks, numThreads>>>(dnums, numFloats);
 
     cudaMemcpy(nums, dnums, numFloats * sizeof(float), cudaMemcpyDeviceToHost);
 
