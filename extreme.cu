@@ -54,27 +54,35 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
     for(int i = offset; i < numFloats; i += shift) {
         bool isMin = true;
         bool isMax = true;
-        // For 8 neighbors, where i - floatsPerRow - 1 is top left and i + floatsPerRow + 1 is bottom right
-        for(int j = -1; j < 2; ++j) {
-            for(int k = -1; k < 2; ++k) {
-                if(j == 0 && k == 0) {
-                    // Skip element in its own loop
-                    continue;
-                }
 
-                int neighborIndex = i + j * floatsPerRow + k * 1;
-                if(neighborIndex < 0 || neighborIndex >= numFloats) {
-                    // As per discord, min/max cannot be on the edge
-                    isMin = false;
-                    isMax = false;
-                } else {
-                    isMin = isMin && (dnums[i] < dnums[i + j * floatsPerRow + k * 1]); // Neighbor :)
-                    isMax = isMax && (dnums[i] > dnums[i + j * floatsPerRow + k * 1]);
+        int rowNum = i / floatsPerRow;
+        int colNum = i % floatsPerRow;
+
+        if(rowNum == 0 || colNum == 0 || colNum == floatsPerRow || rowNum == numFloats/floatsPerRow) {
+            disExtreme[i] = false;
+        } else {
+            // For 8 neighbors, where i - floatsPerRow - 1 is top left and i + floatsPerRow + 1 is bottom right
+            for(int j = -1; j < 2; ++j) {
+                for(int k = -1; k < 2; ++k) {
+                    if(j == 0 && k == 0) {
+                        // Skip element in its own loop
+                        continue;
+                    }
+
+                    int neighborIndex = i + j * floatsPerRow + k * 1;
+                    if(neighborIndex < 0 || neighborIndex >= numFloats) {
+                        // As per discord, min/max cannot be on the edge
+                        isMin = false;
+                        isMax = false;
+                    } else {
+                        isMin = isMin && (dnums[i] < dnums[i + j * floatsPerRow + k * 1]); // Neighbor :)
+                        isMax = isMax && (dnums[i] > dnums[i + j * floatsPerRow + k * 1]);
+                    }
                 }
             }
+            
+            disExtreme[i] = isMin || isMax;
         }
-        
-        disExtreme[i] = isMin || isMax;
     }
 }
 
