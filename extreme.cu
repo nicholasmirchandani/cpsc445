@@ -3,7 +3,7 @@
 #include <string>
 #include <cmath>
 
-#define MAX_BUF 200000
+#define MAX_BUF 20000
 
 void readCSV(float* nums, int& numFloats, int& floatsPerRow, std::string filename) {
     std::ifstream is(filename);
@@ -54,9 +54,9 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
 
-    bool isMin = true;
-    bool isMax = true;
     for(int i = offset; i < numFloats; i += shift) {
+        bool isMin = true;
+        bool isMax = true;
         // For 8 neighbors, where i - floatsPerRow - 1 is top left and i + floatsPerRow + 1 is bottom right
         for(int j = -1; j < 2; ++j) {
             for(int k = -1; k < 2; ++k) {
@@ -65,8 +65,13 @@ __global__ void find_extremes(float* dnums, int numFloats, int floatsPerRow, boo
                     continue;
                 }
 
-                isMin = isMin && (dnums[i] < dnums[i + j * floatsPerRow + k * 1]); // Neighbor :)
-                isMax = isMax && (dnums[i] > dnums[i + j * floatsPerRow + k * 1]);
+                int neighborIndex = i + j * floatsPerRow + k * 1;
+                if(neighborIndex < 0 || neighborIndex >= numFloats) {
+
+                } else {
+                    isMin = isMin && (dnums[i] < dnums[i + j * floatsPerRow + k * 1]); // Neighbor :)
+                    isMax = isMax && (dnums[i] > dnums[i + j * floatsPerRow + k * 1]);
+                }
             }
         }
         
@@ -84,6 +89,7 @@ int main() {
     system("head input.csv");
 
     readCSV(nums, numFloats, floatsPerRow, "input.csv");
+    std::cout << "Numfloats: " << numFloats << std::endl;
 
     // Now we have the csv properly parsed, we do the parallel sqrt computation
     float* dnums;
@@ -91,6 +97,7 @@ int main() {
     cudaMalloc((void**) &dnums, numFloats * sizeof(float));
     cudaMemcpy(dnums, nums, numFloats * sizeof(float), cudaMemcpyHostToDevice);
     cudaMalloc((void**) &disExtreme, numFloats * sizeof(bool));
+    cudaMemcpy(disExtreme, isExtreme, numFloats * sizeof(bool), cudaMemcpyHostToDevice);
 
     int numBlocks = 2;
     int numThreads = 4;
@@ -113,7 +120,7 @@ int main() {
         int rowNum = i / floatsPerRow;
         int colNum = i % floatsPerRow;
         if(isExtreme[i]) {
-            std::cout << colNum << "," << rowNum << std::endl;
+            std::cout << colNum + 1 << "," << rowNum + 1 << std::endl;
         }
     }
 
