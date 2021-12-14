@@ -11,7 +11,7 @@ __device__ bool pointInTri_device(float* p, float p1x, float p1y);
 __device__ bool checkTesselatedTris_device(float* p1, float p1_num_verts, float* p2, float p2_num_verts);
 __device__ bool checkOverlap_device(float* p1, float p1_num_verts, float* p2, float p2_num_verts);
 
-
+// The core parallelized function; it helps each thread figure out what polygons to compute the result of given their thread id and block id
 __global__ void parallel_checkOverlap(float* dps, int* dp_counts, int num_polys) {
     int shift = gridDim.x * blockDim.x;
     int offset = blockIdx.x * blockDim.x + threadIdx.x;
@@ -23,6 +23,7 @@ __global__ void parallel_checkOverlap(float* dps, int* dp_counts, int num_polys)
     }
 }
 
+// The main function
 int main() {
     srand(time(0));
     float* polygons = new float[NUM_POLYGONS * 10 * 2];
@@ -77,6 +78,7 @@ int main() {
 
 }
 
+// Helper for triangle intersection that simply detects if a point is in a triangle, derived using algebra
 bool pointInTri(float* p, float p1x, float p1y) {
     bool inTriangle = true;
     
@@ -97,6 +99,7 @@ bool pointInTri(float* p, float p1x, float p1y) {
     return inTriangle;
 }
 
+// Function I wrote to clean up some of my earlier code; takes two polygons, tesselates one and checks the points of the other in every resultant triangle.  If any match, true is returned
 bool checkTesselatedTris(float* p1, float p1_num_verts, float* p2, float p2_num_verts) {
     int v0 = 0;
     int v1 = 1;
@@ -104,7 +107,7 @@ bool checkTesselatedTris(float* p1, float p1_num_verts, float* p2, float p2_num_
     bool collision = false;
     float* tempTri = new float[6];
 
-    while(v2-v1 >= 1) {
+    while(v2-v1 >= 1 && !collision) {
         tempTri[0 * 2 + 0] = p1[v0 * 2 + 0];
         tempTri[0 * 2 + 1] = p1[v0 * 2 + 1];
         tempTri[1 * 2 + 0] = p1[v1 * 2 + 0];
@@ -119,7 +122,7 @@ bool checkTesselatedTris(float* p1, float p1_num_verts, float* p2, float p2_num_
         v1 = v2;
         v2 = v0 - 1; // v0 now is the previous state of v1
 
-        if (v2-v1 < 1) {
+        if (v2-v1 < 1 || collision) {
             break;
         }
 
@@ -142,6 +145,7 @@ bool checkTesselatedTris(float* p1, float p1_num_verts, float* p2, float p2_num_
     return collision;
 }
 
+// Master function for checking overlap between polygons
 bool checkOverlap(float* p1, float p1_num_verts, float* p2, float p2_num_verts) {
 
     // Using custom algorithm I wrote, assuming polygon does not self-intersect and has non-identical vertices, and they're not a line either
@@ -154,6 +158,7 @@ bool checkOverlap(float* p1, float p1_num_verts, float* p2, float p2_num_verts) 
     return collision;
 }
 
+// Device equivalent of pointInTri; nearly identical, but has to be a device function for the parallel implementation
 __device__ bool pointInTri_device(float* p, float p1x, float p1y) {
     bool inTriangle = true;
     
@@ -174,6 +179,7 @@ __device__ bool pointInTri_device(float* p, float p1x, float p1y) {
     return inTriangle;
 }
 
+// Device equivalent of checkTesselatedTris; nearly identical, but has to be a device function for the parallel implementation
 __device__ bool checkTesselatedTris_device(float* p1, float p1_num_verts, float* p2, float p2_num_verts) {
     int v0 = 0;
     int v1 = 1;
@@ -219,6 +225,7 @@ __device__ bool checkTesselatedTris_device(float* p1, float p1_num_verts, float*
     return collision;
 }
 
+// Device equivalent of checkOverlap; nearly identical, but has to be a device function for the parallel implementation
 __device__ bool checkOverlap_device(float* p1, float p1_num_verts, float* p2, float p2_num_verts) {
 
     // Using custom algorithm I wrote, assuming polygon does not self-intersect and has non-identical vertices, and they're not a line either
