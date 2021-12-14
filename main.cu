@@ -1,6 +1,7 @@
 #include <iostream>
+#include <chrono>
 
-#define NUM_POLYGONS 5
+#define NUM_POLYGONS 100
 
 bool pointInTri(float** p, float p1x, float p1y);
 bool checkTesselatedTris(float** p1, float p1_num_verts, float** p2, float p2_num_verts);
@@ -25,13 +26,17 @@ int main() {
         }
     }
 
+
+    auto start = std::chrono::steady_clock::now();
     // Iteration through triangles inspired by selection sort.  All pairs of triangles need to be checked for overlapping, so no further optimization can be made
     for(int i = 0; i < NUM_POLYGONS; ++i) {
         for(int j = i + 1; j < NUM_POLYGONS; ++j) {
             bool result =  checkOverlap(polygons[i], polygonCounts[i], polygons[j], polygonCounts[j]);
-            std::cout << "RESULT: " << (result ? "The polygons overlap!" : "The polygons do not overlap!") << std::endl;      
         }
     }
+    auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double> diff = end - start;
+        std::cout << "Time to complete serial implementation: " <<  diff.count() << "\n";
 }
 
 bool pointInTri(float** p, float p1x, float p1y) {
@@ -103,7 +108,7 @@ bool checkTesselatedTris(float** p1, float p1_num_verts, float** p2, float p2_nu
 }
 
 bool checkOverlap(float** p1, float p1_num_verts, float** p2, float p2_num_verts) {
-    std::cout << "Checking polygons:  [ ";
+    /*std::cout << "Checking polygons:  [ ";
     for(int i = 0; i < p1_num_verts; ++i) {
         std::cout << "( " << p1[i][0] << ", " << p1[i][1] << "), ";
     }
@@ -111,7 +116,7 @@ bool checkOverlap(float** p1, float p1_num_verts, float** p2, float p2_num_verts
     for(int i = 0; i < p2_num_verts; ++i) {
         std::cout << "( " << p2[i][0] << ", " << p2[i][1] << "), ";
     }
-    std::cout << "] " << std::endl;
+    std::cout << "] " << std::endl;*/
 
 
     // TODO: Check if is line instead of polygon
