@@ -28,7 +28,8 @@ int main() {
     // Iteration through triangles inspired by selection sort.  All pairs of triangles need to be checked for overlapping, so no further optimization can be made
     for(int i = 0; i < NUM_POLYGONS; ++i) {
         for(int j = i + 1; j < NUM_POLYGONS; ++j) {
-            std::cout << "RESULT: " << checkOverlap(polygons[i], polygonCounts[i], polygons[j], polygonCounts[j]) << std::endl;      
+            bool result =  checkOverlap(polygons[i], polygonCounts[i], polygons[j], polygonCounts[j]);
+            std::cout << "RESULT: " << (result ? "The polygons overlap!" : "The polygons do not overlap!") << std::endl;      
         }
     }
 }
