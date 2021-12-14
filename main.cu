@@ -65,8 +65,8 @@ int main() {
     cudaMemcpy(dps, polygons, NUM_POLYGONS * 10 * 2 * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(dp_counts, polygonCounts, NUM_POLYGONS * sizeof(int), cudaMemcpyHostToDevice);
 
-    int numBlocks = 1;
-    int numThreads = 1;
+    int numBlocks = 4;
+    int numThreads = 32;
     parallel_checkOverlap<<<numBlocks, numThreads>>>(dps, dp_counts, NUM_POLYGONS);
     cudaDeviceSynchronize();
     end = std::chrono::steady_clock::now();
