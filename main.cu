@@ -1,7 +1,7 @@
 #include <iostream>
 #include <chrono>
 
-#define NUM_POLYGONS 1000
+#define NUM_POLYGONS 10000
 
 bool pointInTri(float* p, float p1x, float p1y);
 bool checkTesselatedTris(float* p1, float p1_num_verts, float* p2, float p2_num_verts);
@@ -24,9 +24,7 @@ __global__ void parallel_checkOverlap(float* dps, int* dp_counts, int num_polys)
 }
 
 int main() {
-    // TODO: Call delete and free and cudafree
     srand(time(0));
-    // 3 Polygons
     float* polygons = new float[NUM_POLYGONS * 10 * 2];
     int* polygonCounts = new int[NUM_POLYGONS];
     for (int i = 0; i < NUM_POLYGONS; ++i) {
@@ -46,7 +44,6 @@ int main() {
     for(int i = 0; i < NUM_POLYGONS; ++i) {
         for(int j = i + 1; j < NUM_POLYGONS; ++j) {
             bool result = checkOverlap(&polygons[i * 10 * 2], polygonCounts[i], &polygons[j * 10 * 2], polygonCounts[j]);
-            // std::cout << "RESULT: " << result << std::endl;
         }
     }
     auto end = std::chrono::steady_clock::now();
@@ -54,7 +51,7 @@ int main() {
     std::cout << "Time to complete serial implementation: " <<  diff.count() << "\n";
 
     start = std::chrono::steady_clock::now();
-    // TODO: Parallel implementation
+    // Parallel implementation
     
     float* dps;
     int* dp_counts;
@@ -72,6 +69,11 @@ int main() {
     end = std::chrono::steady_clock::now();
     diff = end - start;
     std::cout << "Time to complete parallel implementation: " <<  diff.count() << "\n";
+
+    cudaFree(dps);
+    cudaFree(dp_counts);
+    delete[](polygons);
+    delete[](polygonCounts);
 
 }
 
@@ -141,7 +143,6 @@ bool checkTesselatedTris(float* p1, float p1_num_verts, float* p2, float p2_num_
 }
 
 bool checkOverlap(float* p1, float p1_num_verts, float* p2, float p2_num_verts) {
-    // TODO: Check if is line instead of polygon
 
     // Using custom algorithm I wrote, assuming polygon does not self-intersect and has non-identical vertices, and they're not a line either
     bool collision = false;
@@ -219,7 +220,6 @@ __device__ bool checkTesselatedTris_device(float* p1, float p1_num_verts, float*
 }
 
 __device__ bool checkOverlap_device(float* p1, float p1_num_verts, float* p2, float p2_num_verts) {
-    // TODO: Check if is line instead of polygon
 
     // Using custom algorithm I wrote, assuming polygon does not self-intersect and has non-identical vertices, and they're not a line either
     bool collision = false;
