@@ -13,10 +13,11 @@ int main() {
     float*** polygons = new float**[NUM_POLYGONS];
     int* polygonCounts = new int[NUM_POLYGONS];
     for (int i = 0; i < NUM_POLYGONS; ++i) {
-        // Assuming all polygons have i + 3 vertices
-        int numVertices = i + 3;
+        // Assuming all polygons have 3-10 vertices, chosen at random
+        int randNum = (rand() % 8) + 3;
+        int numVertices = randNum;
         polygonCounts[i] = numVertices;
-        polygons[i] = new float*[i + 3];
+        polygons[i] = new float*[numVertices];
         for(int j = 0; j < numVertices; ++j) { 
             polygons[i][j] = new float[2];
 
@@ -32,6 +33,7 @@ int main() {
     for(int i = 0; i < NUM_POLYGONS; ++i) {
         for(int j = i + 1; j < NUM_POLYGONS; ++j) {
             bool result =  checkOverlap(polygons[i], polygonCounts[i], polygons[j], polygonCounts[j]);
+            // std::cout << "RESULT: " << result << std::endl;
         }
     }
     auto end = std::chrono::steady_clock::now();
