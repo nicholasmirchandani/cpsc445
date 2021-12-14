@@ -1,7 +1,7 @@
 #include <iostream>
 #include <chrono>
 
-#define NUM_POLYGONS 100
+#define NUM_POLYGONS 500
 
 bool pointInTri(float** p, float p1x, float p1y);
 bool checkTesselatedTris(float** p1, float p1_num_verts, float** p2, float p2_num_verts);
