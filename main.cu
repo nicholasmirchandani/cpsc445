@@ -1,10 +1,39 @@
 #include <iostream>
 
-#define NUM_POLYGONS 3
+#define NUM_POLYGONS 5
+
+bool pointInTri(float** p, float p1x, float p1y);
+bool checkTesselatedTris(float** p1, float p1_num_verts, float** p2, float p2_num_verts);
+bool checkOverlap(float** p1, float p1_num_verts, float** p2, float p2_num_verts);
+
+int main() {
+    srand(time(0));
+    // 3 Polygons
+    float*** polygons = new float**[NUM_POLYGONS];
+    int* polygonCounts = new int[NUM_POLYGONS];
+    for (int i = 0; i < NUM_POLYGONS; ++i) {
+        // Assuming all polygons have i + 3 vertices
+        int numVertices = i + 3;
+        polygonCounts[i] = numVertices;
+        polygons[i] = new float*[i + 3];
+        for(int j = 0; j < numVertices; ++j) { 
+            polygons[i][j] = new float[2];
+
+            // TODO: How to randomly generate points?
+            polygons[i][j][0] = rand()/(float) RAND_MAX;
+            polygons[i][j][1] = rand()/(float) RAND_MAX;
+        }
+    }
+
+    // Iteration through triangles inspired by selection sort.  All pairs of triangles need to be checked for overlapping, so no further optimization can be made
+    for(int i = 0; i < NUM_POLYGONS; ++i) {
+        for(int j = i + 1; j < NUM_POLYGONS; ++j) {
+            std::cout << "RESULT: " << checkOverlap(polygons[i], polygonCounts[i], polygons[j], polygonCounts[j]) << std::endl;      
+        }
+    }
+}
 
 bool pointInTri(float** p, float p1x, float p1y) {
-    // NOTE: numVerts no longer needed since assuming triangles at this point
-    std::cout << "Checking the point of (" << p1x << ", " << p1y << ") " << std::endl;
     bool inTriangle = true;
     
     // If point not within triangle, then 3 eqs bounding triangle will not be true, so inTriangle will be false
@@ -24,6 +53,54 @@ bool pointInTri(float** p, float p1x, float p1y) {
     return inTriangle;
 }
 
+bool checkTesselatedTris(float** p1, float p1_num_verts, float** p2, float p2_num_verts) {
+    int v0 = 0;
+    int v1 = 1;
+    int v2 = p1_num_verts - 1;
+    bool collision = false;
+    float** tempTri = new float* [3];
+    for(int i = 0; i < 3; ++i) {
+        tempTri[i] = new float[2];
+    }
+
+    while(v2-v1 >= 1) {
+        tempTri[0][0] = p1[v0][0];
+        tempTri[0][1] = p1[v0][1];
+        tempTri[1][0] = p1[v1][0];
+        tempTri[1][1] = p1[v1][1];
+        tempTri[2][0] = p1[v2][0];
+        tempTri[2][1] = p1[v2][1];
+
+        for(int j = 0; j < p2_num_verts; ++j) {
+            collision = collision || pointInTri(tempTri, p2[j][0], p2[j][1]);
+        }
+        v0 = v1;
+        v1 = v2;
+        v2 = v0 - 1; // v0 now is the previous state of v1
+
+        if (v2-v1 < 1) {
+            break;
+        }
+
+        tempTri[0][0] = p1[v0][0];
+        tempTri[0][1] = p1[v0][1];
+        tempTri[1][0] = p1[v1][0];
+        tempTri[1][1] = p1[v1][1];
+        tempTri[2][0] = p1[v2][0];
+        tempTri[2][1] = p1[v2][1];
+
+        for(int j = 0; j < p2_num_verts; ++j) {
+            collision = collision || pointInTri(tempTri, p2[j][0], p2[j][1]);
+        }
+
+        v0 = v1;
+        v1 = v2;
+        v2 = v0 + 1;
+    }
+
+    return collision;
+}
+
 bool checkOverlap(float** p1, float p1_num_verts, float** p2, float p2_num_verts) {
     std::cout << "Checking polygons:  [ ";
     for(int i = 0; i < p1_num_verts; ++i) {
@@ -35,64 +112,15 @@ bool checkOverlap(float** p1, float p1_num_verts, float** p2, float p2_num_verts
     }
     std::cout << "] " << std::endl;
 
-    if(p1_num_verts != 3) {
-        std::cout << "P1 not have 3 vertices!" << std::endl; // TODO: Tesselate
-    }
 
-    if(p2_num_verts != 3) {
-        std::cout << "P2 not have 3 vertices" << std::endl; // TODO: Tesselate
-    }
+    // TODO: Check if is line instead of polygon
 
-    // Separating axis theorem on all line segments, assuming triangle
-
-    // If any vertex is within the other triangle, triangles intersect (only true with coplanar triangles in two dimensions)
+    // Using custom algorithm I wrote, assuming polygon does not self-intersect and has non-identical vertices, and they're not a line either
     bool collision = false;
-    collision = collision || pointInTri(p2, p1[0][0], p1[0][1]);
-    collision = collision || pointInTri(p2, p1[1][0], p1[1][1]);
-    collision = collision || pointInTri(p2, p1[2][0], p1[2][1]);
-    collision = collision || pointInTri(p1, p2[0][0], p2[0][1]);
-    collision = collision || pointInTri(p1, p2[1][0], p2[1][1]);
-    collision = collision || pointInTri(p1, p2[2][0], p2[2][1]);
+    // p1 tesselated into triangles, checking all points of p2 in each tri
+    collision = collision || checkTesselatedTris(p1, p1_num_verts, p2, p2_num_verts);
+    // p2 tesseleated into triangles, checking all points of p1 in each tri
+    collision = collision || checkTesselatedTris(p2, p2_num_verts, p1, p1_num_verts);
 
     return collision;
-}
-
-int main() {
-    std::cout << "Hello World!" << std::endl;
-    // 3 Polygons
-    float*** polygons = new float**[NUM_POLYGONS];
-    for (int i = 0; i < NUM_POLYGONS; ++i) {
-        // Assuming all polygons are triangles; 3's here are numVertices
-        polygons[i] = new float*[3];
-        for(int j = 0; j < 3; ++j) {
-            polygons[i][j] = new float[2];
-        }
-        polygons[i][0][0] = i + 1;
-        polygons[i][1][0] = i + 2;
-        polygons[i][2][0] = 3 * i;
-        polygons[i][0][1] = i - 1;
-        polygons[i][1][1] = i - 2;
-        polygons[i][2][1] = 13 - i;
-    }
-
-    polygons[0][0][0] = 0;
-    polygons[0][0][1] = 0;
-    polygons[0][1][0] = 2;
-    polygons[0][1][1] = 0;
-    polygons[0][2][0] = -3;
-    polygons[0][2][1] = 2;
-
-    polygons[1][0][0] = 0;
-    polygons[1][0][1] = 1;
-    polygons[1][1][0] = 2;
-    polygons[1][1][1] = 2;
-    polygons[1][2][0] = 2;
-    polygons[1][2][1] = -2;
-
-    // Iteration through triangles inspired by selection sort.  All pairs of triangles need to be checked for overlapping, so no further optimization can be made
-    for(int i = 0; i < NUM_POLYGONS; ++i) {
-        for(int j = i + 1; j < NUM_POLYGONS; ++j) {
-            std::cout << "RESULT: " << checkOverlap(polygons[i], 3, polygons[j], 3) << std::endl;      
-        }
-    }
 }
